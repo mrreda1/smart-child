@@ -93,7 +93,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken(expireTimeInMinutes);
   await user.save();
 
-  await mailer.sendPasswordResetTokenEmail(user, resetToken);
+  await mailer.sendPasswordResetTokenEmail(
+    user,
+    resetToken,
+    expireTimeInMinutes,
+  );
 
   res.status(200).json({
     status: 'success',

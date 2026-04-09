@@ -24,17 +24,19 @@ const sendEmail = catchAsync(async (options) => {
   console.log('Email has been successfully sent!');
 });
 
-exports.sendPasswordResetTokenEmail = catchAsync(async (user, token) => {
-  const options = {
-    recipientsEmail: user.email,
-    subject: 'Password reset token (valid for 10 min).',
-    token: token,
-    html: passwordResetTemplate(user, token),
-  };
+exports.sendPasswordResetTokenEmail = catchAsync(
+  async (user, token, expireTimeInMinutes) => {
+    const options = {
+      recipientsEmail: user.email,
+      subject: `Password reset token (valid for ${expireTimeInMinutes} min).`,
+      token: token,
+      html: passwordResetTemplate(user, token),
+    };
 
-  // console.log('Password reset token: ' + token);
-  await sendEmail(options);
-});
+    // console.log('Password reset token: ' + token);
+    await sendEmail(options);
+  },
+);
 
 exports.sendEmailVerificationToken = catchAsync(async (user, token) => {
   const options = {
