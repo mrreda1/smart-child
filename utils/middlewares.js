@@ -44,7 +44,6 @@ const setupMiddlewares = (app) => {
 
   app.use((req, res, next) => {
     req.requestDate = new Date().toISOString();
-    console.log(req.headers);
     next();
   });
 
