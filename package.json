@@ -13,12 +13,25 @@
 		"debug": "node --inspect server.js"
 	},
 	"dependencies": {
+		"bcryptjs": "^3.0.3",
+		"cookie-parser": "^1.4.7",
+		"cors": "^2.8.6",
 		"dotenv": "^17.2.3",
 		"express": "^4.21.2",
-		"inspect": "^0.0.2",
+		"express-mongo-sanitize": "^2.2.0",
+		"express-rate-limit": "^8.3.2",
+		"helmet": "^8.1.0",
+		"hpp": "^0.2.3",
+		"jsonwebtoken": "^9.0.3",
+		"mailtrap": "^4.5.1",
 		"mongoose": "^8.19.2",
 		"morgan": "^1.10.1",
-		"nodemailer": "^8.0.0",
-		"slugify": "^1.6.6"
+		"nodemailer": "^7.0.13",
+		"slugify": "^1.6.6",
+		"validator": "^13.15.35",
+		"xss-clean": "^0.1.4"
+	},
+	"devDependencies": {
+		"inspect": "^0.0.2"
 	}
 }

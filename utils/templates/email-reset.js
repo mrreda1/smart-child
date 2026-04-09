@@ -1,7 +1,8 @@
 module.exports = (token) => {
-	const resetIcon = "https://cdn.templates.unlayer.com/assets/1593141680866-reset.png";
+  const resetIcon =
+    'https://cdn.templates.unlayer.com/assets/1593141680866-reset.png';
 
-	return `
+  return `
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -220,7 +221,7 @@ table, td { color: #000000; } #u_body a { color: #161a39; text-decoration: under
   <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
 <div align="left">
   <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="" style="height:51px; v-text-anchor:middle; width:205px;" arcsize="2%"  stroke="f" fillcolor="#18163a"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
-    <a href="http://127.0.0.1:3000/api/v1/users/resetPassword/${token}" target="_blank" class="v-button" style="box-sizing: border-box; display: inline-block; text-decoration: none; -moz-text-size-adjust: none; text-align: center; color: rgb(255, 255, 255); background: rgb(24, 22, 58); border-radius: 1px; width: auto; max-width: 100%; word-break: break-word; overflow-wrap: break-word; font-size: 14px; line-height: inherit;"><span style="display:block;padding:15px 40px;line-height:120%;"><span style="font-size: 18px; line-height: 21.6px;">Reset Password</span></span>
+    <a href="${process.env.CLIENT_URL}/reset-password/${token}" target="_blank" class="v-button" style="box-sizing: border-box; display: inline-block; text-decoration: none; -moz-text-size-adjust: none; text-align: center; color: rgb(255, 255, 255); background: rgb(24, 22, 58); border-radius: 1px; width: auto; max-width: 100%; word-break: break-word; overflow-wrap: break-word; font-size: 14px; line-height: inherit;"><span style="display:block;padding:15px 40px;line-height:120%;"><span style="font-size: 18px; line-height: 21.6px;">Reset Password</span></span>
     </a>
     <!--[if mso]></center></v:roundrect><![endif]-->
 </div>
