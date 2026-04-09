@@ -1,7 +1,7 @@
 module.exports = (user, token) => {
   const emailIcon =
     'https://cdn.templates.unlayer.com/assets/1597218650916-xxxxc.png';
-  const verificationURL = token;
+  const verificationURL = `${process.env.CLIENT_URL}/confirm-email/${token}`;
 
   return `
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
