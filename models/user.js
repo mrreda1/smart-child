@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const mailer = require('./../utils/email');
 
 const passwordMinLength = 8;
 const passwordMaxLength = 30;
@@ -16,16 +15,16 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  verifiedEmail: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationToken: {
+    type: String,
+    select: false,
+  },
   email: {
     type: String,
-    verified: {
-      type: Boolean,
-      default: false,
-    },
-    verifiyToken: {
-      type: String,
-      select: false,
-    },
     required: [true, 'A user must have an email.'],
     unique: true,
     trim: true,
@@ -81,21 +80,16 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre('save', function (next) {
-  if (!this.isNew) {
-    next();
-  }
-  const verifyEmailToken = crypto.randomBytes(32).toString('hex');
+userSchema.methods.createEmailVerificationToken = function () {
+  const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
-  this.email.verifiyToken = crypto
+  this.emailVerificationToken = crypto
     .createHash('sha256')
-    .update(verifyEmailToken)
+    .update(emailVerificationToken)
     .digest('hex');
 
-  mailer.sendEmailVerificationToken(this, verifyEmailToken);
-
-  next();
-});
+  return emailVerificationToken;
+};
 
 userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
@@ -104,7 +98,7 @@ userSchema.pre(/^find/, function (next) {
 
 userSchema.pre('save', async function (next) {
   // Only run if password was modified.
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
 
