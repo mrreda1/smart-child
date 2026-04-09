@@ -1,6 +1,7 @@
 const catchAsync = require('./catchAsync');
 const { MailtrapClient } = require('mailtrap');
-const resetTemplate = require('../utils/templates/email-reset');
+const passwordResetTemplate = require('./../utils/templates/email-reset');
+const emailVerificationTemplate = require('./../utils/templates/email-verification');
 
 const sendEmail = catchAsync(async (options) => {
   const TOKEN = process.env.EMAIL_TOKEN;
@@ -29,17 +30,24 @@ const sendEmail = catchAsync(async (options) => {
 });
 
 exports.sendPasswordResetTokenEmail = catchAsync(async (user, token) => {
-  const resetURL = `${process.env.CLIENT_URL}/reset-password/${token}`;
-
-  const message = `Hi ${user.name}!, forgot your password? You can visit our website with your token to reset your password: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
-
   const options = {
     recipientsEmail: user.email,
-    message: message,
     subject: 'Password reset token (valid for 10 min).',
     category: 'Password Reset',
     token: token,
-    html: resetTemplate(token),
+    html: passwordResetTemplate(user, token),
+  };
+
+  await sendEmail(options);
+});
+
+exports.sendEmailVerificationToken = catchAsync(async (user, token) => {
+  const options = {
+    recipientsEmail: user.email,
+    subject: 'Email verification token.',
+    category: 'Email verification',
+    token: token,
+    html: emailVerificationTemplate(user, token),
   };
 
   await sendEmail(options);
