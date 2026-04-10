@@ -1,25 +1,17 @@
 const express = require('express');
-const userController = require(`${__dirname}/../controllers/users`);
-const authController = require(`${__dirname}/../controllers/auth`);
-
 const router = express.Router();
 
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/verify-email', authController.verifyEmail);
-router.post('/confirm-email/:token', authController.confirmEmail);
+const userController = require(`${__dirname}/../controllers/user`);
+const authController = require(`${__dirname}/../controllers/auth`);
 
-router.post('/forgotPassword', authController.forgotPassword);
-router.patch('/resetPassword/:token', authController.resetPassword);
-router
-  .route('/updateMyPassword')
-  .patch(authController.protect, authController.updatePassword);
 router
   .route('/updateMyInfo')
   .patch(authController.protect, userController.updateUser);
+
 router
   .route('/deleteMyAccount')
   .delete(authController.protect, userController.deleteMyAccount);
+
 router
   .route('/delete/:id')
   .delete(

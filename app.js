@@ -1,7 +1,8 @@
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/error');
 
-const userRouter = require(`${__dirname}/routes/users`);
+const authRouter = require(`${__dirname}/routes/auth`);
+const userRouter = require(`${__dirname}/routes/user`);
 
 const setupMiddlewares = require(`${__dirname}/utils/middlewares`);
 
@@ -14,7 +15,9 @@ const app = express();
 setupMiddlewares(app);
 
 // ROUTES
-app.use(`/api/v${APIVersion}/users`, userRouter);
+app.use(`/api/v${APIVersion}/auth`, authRouter);
+
+app.use(`/api/v${APIVersion}/user`, userRouter);
 
 // Error handler for invalid routes
 app.all('*', (req, res, next) => {

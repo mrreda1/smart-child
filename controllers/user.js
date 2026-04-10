@@ -1,8 +1,8 @@
-const User = require('./../models/user');
-const catchAsync = require('./../utils/catchAsync');
-const AppError = require('./../utils/appError');
-const filterObj = require('./../utils/filterObj');
-const factory = require('./../controllers/handlerFactory');
+const User = require('../models/user');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const filterObj = require('../utils/filterObj');
+const factory = require('./handlerFactory');
 
 exports.getUser = factory.getOne(User);
 
