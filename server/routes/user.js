@@ -6,12 +6,14 @@ const authController = require(`../controllers/auth`);
 
 const setIdAsParam = require(`../middlewares/setIdAsParam.js`);
 
+const upload = require('../middlewares/upload.js');
+
 router.use('/me', authController.protect);
 
 router
   .route('/me')
   .get(setIdAsParam('user'), userController.getUser)
-  .patch(userController.updateUser)
+  .patch(upload.single('photo'), userController.updateUser)
   .delete(userController.deleteMyAccount);
 
 router
