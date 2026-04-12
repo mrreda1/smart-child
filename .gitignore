@@ -29,3 +29,8 @@ pnpm-debug.log*
 # Misc
 .DS_Store
 .npm
+
+#uploads
+/**/uploads/profiles/*
+
+!/**/uploads/profiles/default-user.jpg
