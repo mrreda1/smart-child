@@ -1,0 +1,27 @@
+{
+  "name": "smart-child",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix client\" \"npm start --prefix server\"",
+    "client": "npm run dev --prefix client",
+    "server": "npm start --prefix server",
+    "install:all": "npm install --prefix client && npm install --prefix server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrreda1/smart-child.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrreda1/smart-child/issues"
+  },
+  "homepage": "https://github.com/mrreda1/smart-child#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

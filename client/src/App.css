@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@layer base {
+  button:disabled {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+
+  button,
+  a {
+    @apply cursor-pointer;
+  }
+}
