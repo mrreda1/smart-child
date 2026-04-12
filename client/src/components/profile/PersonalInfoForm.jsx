@@ -6,6 +6,8 @@ import { namePattern } from "@/constants/pattern";
 import { THEME } from "@/constants/config";
 import { useTimer } from "@/hooks/Timer";
 import { useEffect } from "react";
+import { useVerifyEmail } from "@/hooks/auth";
+import { useGetUser } from "@/hooks/user";
 
 const PersonalInfoForm = ({ user }) => {
   const form = useForm({
@@ -22,6 +24,8 @@ const PersonalInfoForm = ({ user }) => {
     durationSec: 60,
   });
 
+  const verifyEmail = useVerifyEmail();
+
   const handleUpdateProfile = (formData) => {
     const dirtyFields = form.formState.dirtyFields;
 
@@ -36,8 +40,9 @@ const PersonalInfoForm = ({ user }) => {
   };
 
   const handleEmailVerfication = () => {
-    // API Request To Verify Email Goes Here
     timer.setActive(true);
+
+    verifyEmail.mutate({ email: user.email });
   };
 
   return (
