@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./../models/user');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { StatusCodes } = require('http-status-codes');
 const mailer = require('../utils/email');
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -18,24 +19,31 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   newUser.emailVerificationToken = undefined;
 
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, StatusCodes.CREATED, res);
 });
 
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!(email && password)) {
-    return next(new AppError('Please provide email and password', 400));
+    return next(
+      new AppError(
+        'Please provide email and password',
+        StatusCodes.BAD_REQUEST,
+      ),
+    );
   }
 
   const user = await User.findOne({ email: email }).select('+password');
   // const passwordIsCorrect = await bcrypt.compare(password, user.password);
 
   if (!(user && (await user.passwordMatch(password)))) {
-    return next(new AppError('Email or password is incorrect!', 404));
+    return next(
+      new AppError('Email or password is incorrect!', StatusCodes.BAD_REQUEST),
+    );
   }
 
-  createSendToken(user, 200, res);
+  createSendToken(user, StatusCodes.OK, res);
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -45,22 +53,32 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (!req.headers.authorization?.startsWith('Bearer')) {
     return next(
-      new AppError("You're not logged in! Please log in to get access.", 401),
+      new AppError(
+        "You're not logged in! Please log in to get access.",
+        StatusCodes.UNAUTHORIZED,
+      ),
     );
   }
+
   token = req.headers.authorization.split(' ')[1];
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
-      new AppError('The user belonging to this token does not exist.', 401),
+      new AppError(
+        'The user belonging to this token does not exist.',
+        StatusCodes.UNAUTHORIZED,
+      ),
     );
   }
 
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
-      new AppError('Password is recently changed! Please log in again.', 401),
+      new AppError(
+        'Password is recently changed! Please log in again.',
+        StatusCodes.UNAUTHORIZED,
+      ),
     );
   }
 
@@ -74,7 +92,7 @@ exports.restrictToVerified = (req, res, next) => {
     return next(
       new AppError(
         'Your email is not verified. Please verify to access this feature.',
-        403,
+        StatusCodes.FORBIDDEN,
       ),
     );
   }
@@ -85,7 +103,7 @@ exports.restrictToVerified = (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return next(new AppError('Permission denied.', 403));
+      return next(new AppError('Permission denied.', StatusCodes.FORBIDDEN));
     }
     next();
   };
@@ -93,9 +111,11 @@ exports.restrictTo = (...roles) => {
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
-
   if (!user) {
-    return next(new AppError('There is no user with this email address.', 404));
+    return res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'token sent to email.',
+    });
   }
 
   const expireTimeInMinutes = 60;
@@ -108,7 +128,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     expireTimeInMinutes,
   );
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     status: 'success',
     message: 'token sent to email.',
   });
@@ -126,7 +146,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError('Token has expired or invalid!', 400));
+    return next(
+      new AppError('Token has expired or invalid!', StatusCodes.BAD_REQUEST),
+    );
   }
 
   user.password = req.body.password;
@@ -135,27 +157,39 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpires = undefined;
   await user.save();
 
-  createSendToken(user, 200, res);
+  createSendToken(user, StatusCodes.OK, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user._id).select('+password');
+  const user = await User.findById(req.user.id).select('+password');
   const { currentPassword, newPassword, newPasswordConfirm } = req.body;
 
   if (!(await user.passwordMatch(currentPassword))) {
-    return next(new AppError('Current password is incorrect', 401));
+    return next(
+      new AppError('Current password is incorrect', StatusCodes.BAD_REQUEST),
+    );
   }
 
-  if (!(newPassword && newPasswordConfirm)) {
-    return next(new AppError('New password does not match!', 401));
+  if (!(newPassword === newPasswordConfirm)) {
+    return next(
+      new AppError('New password does not match!', StatusCodes.BAD_REQUEST),
+    );
   }
+
+  if (currentPassword === newPassword)
+    return next(
+      new AppError(
+        'New password is same as old password',
+        StatusCodes.BAD_REQUEST,
+      ),
+    );
 
   user.password = newPassword;
   user.passwordConfirm = newPasswordConfirm;
 
   await user.save();
 
-  createSendToken(user, 200, res);
+  createSendToken(user, StatusCodes.OK, res);
 });
 
 exports.confirmEmail = catchAsync(async (req, res, next) => {
@@ -169,14 +203,14 @@ exports.confirmEmail = catchAsync(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new AppError('Token is invalid!', 400));
+    return next(new AppError('Token is invalid!', StatusCodes.BAD_REQUEST));
   }
 
   user.emailVerificationToken = undefined;
   user.verifiedEmail = true;
   await user.save();
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     status: 'success',
     message: 'email verified!',
   });
@@ -187,15 +221,21 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     email: req.body.email,
   });
 
-  if (!user)
-    return next(new AppError('There is no user with this email address.', 404));
+  if (!user) {
+    return res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'token sent to email.',
+    });
+  }
 
   if (user.verifiedEmail)
-    return next(new AppError('Email is already verified.', 409));
+    return next(
+      new AppError('Email is already verified.', StatusCodes.CONFLICT),
+    );
 
   await createSendEmailVerificationToken(user);
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     status: 'success',
     message: 'token sent to email.',
   });
