@@ -15,7 +15,7 @@ const setupMiddlewares = (app) => {
       credentials: true,
     }),
   );
-  app.use(helmet()); // extra security
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })); // extra security
   app.use(mongoSanitizer()); // no sql injection filter
   app.use(xss()); // malicious html filter
   app.use(
