@@ -5,9 +5,9 @@ import ImageInputField from "../common/ImageInputField";
 import { namePattern } from "@/constants/pattern";
 import { THEME } from "@/constants/config";
 import { useTimer } from "@/hooks/Timer";
-import { useEffect } from "react";
 import { useVerifyEmail } from "@/hooks/auth";
-import { useGetUser } from "@/hooks/user";
+import { useUpdateUser } from "@/hooks/user";
+import { useEffect } from "react";
 
 const PersonalInfoForm = ({ user }) => {
   const form = useForm({
@@ -26,6 +26,8 @@ const PersonalInfoForm = ({ user }) => {
 
   const verifyEmail = useVerifyEmail();
 
+  const updateUser = useUpdateUser();
+
   const handleUpdateProfile = (formData) => {
     const dirtyFields = form.formState.dirtyFields;
 
@@ -36,7 +38,11 @@ const PersonalInfoForm = ({ user }) => {
 
     if (changedData.photo) changedData.photo = changedData.photo[0];
 
-    // Here API Update Request Goes
+    formData = new FormData();
+
+    for (const k in changedData) formData.append(k, changedData[k]);
+
+    updateUser.mutate(formData);
   };
 
   const handleEmailVerfication = () => {
@@ -44,6 +50,11 @@ const PersonalInfoForm = ({ user }) => {
 
     verifyEmail.mutate({ email: user.email });
   };
+
+  // if(updateUser.isSuccess) form.reset()
+  useEffect(() => {
+    if (updateUser.isSuccess) form.reset({ name: user.name, photo: "" });
+  }, [updateUser.isSuccess]);
 
   return (
     <section className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-slate-100">
@@ -57,7 +68,9 @@ const PersonalInfoForm = ({ user }) => {
             <h2 className="text-xl font-bold">Personal Details</h2>
           </div>
 
-          <ImageInputField />
+          <ImageInputField
+            initialPhoto={`${import.meta.env.VITE_IMG_BASE_URL}/${user.photo}`}
+          />
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
@@ -85,7 +98,7 @@ const PersonalInfoForm = ({ user }) => {
 
           <button
             type="submit"
-            disabled={!form.formState.isDirty}
+            disabled={!form.formState.isDirty || updateUser.isPending}
             className={`${THEME.primaryYellow} hover:bg-[#E5B427] text-slate-900 font-bold py-4 px-10 rounded-full shadow-lg shadow-yellow-100 transition-all active:scale-95 flex items-center gap-2`}
           >
             <Save className="w-5 h-5" />

@@ -1,5 +1,6 @@
-import { getCurrentUser } from "@/services/userService";
-import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser, updateCurrentUser } from "@/services/userService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const useGetUser = ({
   refetchOnUnVerified = false,
@@ -22,4 +23,17 @@ const useGetUser = ({
   });
 };
 
-export { useGetUser };
+const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateCurrentUser,
+    onSuccess: (user) => {
+      queryClient.setQueryData(["currentUser"], user);
+
+      toast.success("Updated");
+    },
+  });
+};
+
+export { useGetUser, useUpdateUser };

@@ -8,4 +8,12 @@ const getCurrentUser = async () => {
   return res.data.user;
 };
 
-export { getCurrentUser };
+const updateCurrentUser = async (newData) => {
+  const res = await apiClient.patch(`${userStartEndpoint}/me`, newData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return res.data.user;
+};
+
+export { getCurrentUser, updateCurrentUser };

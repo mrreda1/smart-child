@@ -1,5 +1,6 @@
 import { ASSETS } from "@/assets";
 import { THEME } from "@/constants/config";
+import { useGetUser } from "@/hooks/user";
 import authService from "@/services/authService";
 import {
   LogOut,
@@ -17,6 +18,7 @@ const ParentDashboardHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const userQuery = useGetUser({});
 
   const isDashboard = location.pathname === "/parent/dashboard";
   const isProfile = location.pathname === "/parent/profile";
@@ -62,7 +64,11 @@ const ParentDashboardHeader = () => {
               className={`p-0.5 rounded-full transition-all ${isProfile ? "ring-2 ring-yellow-400 ring-offset-2" : "hover:scale-110"}`}
             >
               <img
-                src={ASSETS.avatars.parent}
+                src={
+                  userQuery.isSuccess
+                    ? `${import.meta.env.VITE_IMG_BASE_URL}/${userQuery.data.photo}`
+                    : undefined
+                }
                 className="w-10 h-10 rounded-full border border-gray-100"
                 alt="Profile"
               />

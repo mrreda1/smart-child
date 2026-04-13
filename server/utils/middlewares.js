@@ -11,10 +11,11 @@ const setupMiddlewares = (app) => {
   app.use(
     cors({
       origin: process.env.CLIENT_URL,
+
       credentials: true,
     }),
   );
-  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })); // extra security
+  app.use(helmet()); // extra security
   app.use(mongoSanitizer()); // no sql injection filter
   app.use(xss()); // malicious html filter
   app.use(

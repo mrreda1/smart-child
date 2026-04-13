@@ -3,9 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Camera } from "lucide-react";
 import { THEME } from "@/constants/config";
 
-const ImageInputField = ({
-  initialPhoto = "https://tse1.mm.bing.net/th/id/OIP.oMGwjU2nyjvz_kP6MoNqCgHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
-}) => {
+const ImageInputField = ({ initialPhoto }) => {
   const { register, watch, setValue } = useFormContext();
 
   const [imgURL, setImgURL] = useState(initialPhoto);
