@@ -61,8 +61,6 @@ export const ProfileModal = ({ onClose, mode, initialData }) => {
   }
 
   const onSubmit = async (data) => {
-    console.log(dirtyFields);
-
     const changedData = Object.keys(dirtyFields).reduce(
       (acc, updatedField) => ({ ...acc, [updatedField]: data[updatedField] }),
       {},

@@ -10,35 +10,37 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
     register,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, dirtyFields },
   } = useFormContext();
 
   const [imgURL, setImgURL] = useState(initialPhoto);
   const fileInputRef = useRef(null);
-  const photoFile = watch("photo");
+  let photoFile = watch("photo");
+  const prevPhotoFile = useRef(photoFile);
 
   useEffect(() => {
     if (photoFile && photoFile.length > 0) {
+      prevPhotoFile.current = Array.from(photoFile);
       const file = photoFile[0];
       const objectUrl = URL.createObjectURL(file);
       setImgURL(objectUrl);
       return () => URL.revokeObjectURL(objectUrl);
-    } else {
-      setImgURL(initialPhoto);
+    } else if (photoFile && !photoFile.length) {
+      // Preserve Previous File Input When The User Cancels OS File Form
+      setValue("photo", prevPhotoFile.current);
+      return;
     }
+
+    setImgURL(initialPhoto);
   }, [photoFile, initialPhoto]);
 
   const handleRemove = (e) => {
     e.stopPropagation();
 
-    setValue("photo", "", { shouldDirty: true, shouldValidate: true });
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setValue("photo", "", { shouldDirty: true });
   };
 
-  const isPhotoSelected = photoFile && photoFile.length > 0;
+  const isPhotoSelected = dirtyFields.photo;
 
   return (
     <div className="flex flex-col items-center sm:flex-row gap-8 pb-8 border-b border-slate-50">
