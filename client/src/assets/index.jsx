@@ -1,3 +1,4 @@
+// Landing Page Images
 import heroImage from "@/assets/images/home.png";
 import logo from "@/assets/images/logo.png";
 import flower from "@/assets/images/flower.png";
@@ -11,6 +12,25 @@ import reactionSpeedTest from "@/assets/images/reactionSpeedTest.jpg";
 import colorTest from "@/assets/images/colorTest.jpg";
 import hearingTest from "@/assets/images/hearingTest.jpg";
 import drawingTest from "@/assets/images/drawingTest.jpg";
+
+// Default Child Icons
+import blackBoyIcon from "@/assets/images/childIcons/blackBoy.png";
+import blackGirlIcon from "@/assets/images/childIcons/blackGirl.png";
+import boyBlackHair from "@/assets/images/childIcons/boyBlackHair.png";
+import boyBrownHair from "@/assets/images/childIcons/boyBrownHair.png";
+import boyYellowHair from "@/assets/images/childIcons/boyYellowHair.png";
+import girlBlackHair from "@/assets/images/childIcons/girlBlackHair.png";
+import girlYellowHair from "@/assets/images/childIcons/girlYellowHair.png";
+
+const childAvatars = [
+  boyYellowHair,
+  boyBlackHair,
+  boyBrownHair,
+  blackBoyIcon,
+  girlYellowHair,
+  girlBlackHair,
+  blackGirlIcon,
+];
 
 const ASSETS = {
   auth,
@@ -26,14 +46,7 @@ const ASSETS = {
   colorTest,
   hearingTest,
   drawingTest,
-  avatars: {
-    child1:
-      "https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=b6e3f4",
-    child2:
-      "https://api.dicebear.com/7.x/micah/svg?seed=Mia&backgroundColor=ffdfbf",
-    parent:
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Parent&backgroundColor=e2e8f0",
-  },
+  childAvatars,
 };
 
 const SOUNDS = {
@@ -43,13 +56,6 @@ const SOUNDS = {
     "https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3",
   win: "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3",
 };
-
-const PREDEFINED_AVATARS = [
-  "https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Mia&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Leo&backgroundColor=c0aede",
-  "https://api.dicebear.com/7.x/micah/svg?seed=Zoe&backgroundColor=ffb8b8",
-];
 
 const HEARING_ITEMS = [
   {
@@ -112,11 +118,4 @@ const playSound = (url) => {
   }
 };
 
-export {
-  ASSETS,
-  SOUNDS,
-  PREDEFINED_AVATARS,
-  HEARING_ITEMS,
-  AUDIO_CACHE,
-  playSound,
-};
+export { ASSETS, SOUNDS, HEARING_ITEMS, AUDIO_CACHE, playSound };

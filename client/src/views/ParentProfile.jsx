@@ -1,17 +1,7 @@
 import { useGetUser } from "@/hooks/user";
-import {
-  User,
-  Camera,
-  Mail,
-  Lock,
-  BadgeCheck,
-  AlertCircle,
-  Save,
-  ShieldCheck,
-} from "lucide-react";
-import GamifiedLoader from "./Games/GamifiedLoader";
-import { PersonalInfoForm } from "@/components/profile/PersonalInfoForm";
-import { SecurityForm } from "@/components/profile/SecurityForm";
+import GamifiedLoader from "../components/common/GamifiedLoader";
+import { PersonalInfoForm } from "@/components/profile/parentProfile/PersonalInfoForm";
+import { SecurityForm } from "@/components/profile/parentProfile/SecurityForm";
 
 const ParentProfile = () => {
   const userQuery = useGetUser({});

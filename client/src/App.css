@@ -10,3 +10,7 @@
     @apply cursor-pointer;
   }
 }
+
+#root {
+  height: 100vh;
+}

@@ -1,5 +1,4 @@
 import { ASSETS } from "@/assets";
-import { THEME } from "@/constants/config";
 import { useGetUser } from "@/hooks/user";
 import authService from "@/services/authService";
 import {
@@ -116,7 +115,7 @@ const ParentDashboardHeader = () => {
         {/* Profile Snapshot in Drawer */}
         <div className="bg-yellow-50 p-5 rounded-[2rem] mb-8 border border-yellow-100 flex items-center gap-4">
           <img
-            src={ASSETS.avatars.parent}
+            src={userQuery}
             className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
             alt="Me"
           />

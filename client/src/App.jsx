@@ -12,7 +12,7 @@ import LandingPage from "./views/LandingPage";
 import ParentDashboard from "./views/Dashboards/ParentDashboard";
 import ChildDashboard from "./views/Dashboards/ChildDashboard";
 import FreePlayMenu from "./views/Games/InteractiveGames";
-import GamifiedLoader from "./views/Games/GamifiedLoader";
+import GamifiedLoader from "./components/common/GamifiedLoader";
 import GamePlay from "./views/Games/GamePlay";
 import ReportsDashboard from "./views/Dashboards/ReportsDashboard";
 import AuthLayoutWrapper from "./layouts/AuthLayout";
