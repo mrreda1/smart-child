@@ -133,7 +133,7 @@ export const ProfileModal = ({ onClose, mode, initialData }) => {
                   required: "Required",
                   valueAsNumber: true,
                   min: { value: 1, message: "Age must be valid" },
-                  max: { value: 18, message: "Age must be under 18" },
+                  max: { value: 12, message: "Age must be under 12" },
                 })}
                 disabled={isSubmitting}
                 placeholder="Age"

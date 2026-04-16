@@ -28,6 +28,7 @@
 		"mongoose": "^8.19.2",
 		"morgan": "^1.10.1",
 		"multer": "^2.1.1",
+		"nanoid": "^5.1.9",
 		"nodemailer": "^8.0.5",
 		"slugify": "^1.6.6",
 		"smart-child": "file:..",

@@ -1,7 +1,7 @@
 const { promisify } = require('node:util');
 const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
-const User = require('./../models/user');
+const User = require('../models/Parent');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
@@ -83,7 +83,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // GRANT ACCESS TO PROTECTED ROUTE.
-  req.user = currentUser;
+  req.user = currentUser.toObject();
   next();
 });
 
