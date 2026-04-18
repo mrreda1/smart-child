@@ -12,6 +12,11 @@ const parentChildSchema = new Schema({
     ref: 'Child',
     required: true,
   },
+  status: {
+    type: String,
+    enum: ['pending', 'accepted', 'denied'],
+    default: 'pending',
+  },
   is_owner: {
     type: Boolean,
     required: true,
@@ -20,6 +25,15 @@ const parentChildSchema = new Schema({
 });
 
 parentChildSchema.index({ parent_id: 1, child_id: 1 }, { unique: true });
+
+parentChildSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete ret._id;
+    delete ret.status;
+    delete ret.__v;
+  },
+});
 
 const ParentChild = mongoose.model('ParentChild', parentChildSchema);
 

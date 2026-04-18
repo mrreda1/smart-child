@@ -1,36 +1,35 @@
 const router = require('express').Router();
 
 const childController = require('../controllers/child');
-const authController = require('../controllers/auth');
+const authMiddleware = require('../middlewares/auth');
+const parentChecksMiddleware = require('../middlewares/parentChecks');
 
 const upload = require('../middlewares/upload');
 
 const { populateFileToBody } = require('../middlewares/populateFileToBody');
 
-const {
-  checkParentChildLink,
-  checkParentChildOwnership,
-} = require('../middlewares/parentChild');
+const { checkParentChildLink, checkParentChildOwnership } = require('../middlewares/parentChild');
 
 const { cleanupOldFile } = require('../middlewares/cleanupOldFile');
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router.post(
   '/',
   upload.single('photo'),
   populateFileToBody({ propertyName: 'photo' }),
+  parentChecksMiddleware.restrictToVerified,
   childController.createChild,
 );
 
 router
   .route('/:id')
 
-  .all(checkParentChildLink)
+  .all(checkParentChildLink((req) => req.params.id))
 
   .get(childController.getChild)
 
-  .all(checkParentChildOwnership)
+  .all(checkParentChildOwnership((req) => req.parentChildLink))
 
   .patch(
     upload.single('photo'),

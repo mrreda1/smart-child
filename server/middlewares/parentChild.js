@@ -3,40 +3,36 @@ const ParentChild = require('../models/parentChild');
 const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
 
-const checkParentChildLink = catchAsync(async (req, res, next) => {
-  const childId = req.params.id;
+const checkParentChildLink = (extractChildId) =>
+  catchAsync(async (req, res, next) => {
+    const childId = extractChildId(req);
 
-  const parentId = req.user.id;
+    const parentId = req.user.id;
 
-  const relationship = await ParentChild.findOne({
-    parent_id: parentId,
-    child_id: childId,
+    const relationship = await ParentChild.findOne({
+      parent_id: parentId,
+      child_id: childId,
+    });
+
+    if (!relationship)
+      throw new AppError('Forbidden: You do not have permission to access this child profile.', StatusCodes.FORBIDDEN);
+
+    req.parentChildLink = relationship.toObject();
+
+    next();
   });
 
-  if (!relationship) {
-    return next(
-      new AppError(
-        'Forbidden: You do not have permission to access this child profile.',
-        StatusCodes.FORBIDDEN,
-      ),
-    );
-  }
+const checkParentChildOwnership = (extractRelationship) =>
+  catchAsync(async (req, res, next) => {
+    const parentChildLink = extractRelationship(req);
 
-  req.parentChildLink = relationship.toObject();
-
-  next();
-});
-
-const checkParentChildOwnership = catchAsync(async (req, res, next) => {
-  if (!req.parentChildLink?.is_owner)
-    return next(
-      new AppError(
+    if (!parentChildLink?.is_owner)
+      throw new AppError(
         'Forbidden: You do not have permission to do that action. only owner parent can do.',
         StatusCodes.FORBIDDEN,
-      ),
-    );
+      );
 
-  next();
-});
+    next();
+  });
 
 module.exports = { checkParentChildLink, checkParentChildOwnership };

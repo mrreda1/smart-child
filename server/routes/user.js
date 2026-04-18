@@ -1,31 +1,34 @@
 const express = require('express');
 const router = express.Router();
 
-const userController = require('../controllers/user');
-const authController = require(`../controllers/auth`);
+const parentController = require('../controllers/parent');
+
+const parentChecksMiddleware = require('../middlewares/parentChecks');
+
+const authMiddleware = require('../middlewares/auth');
 
 const setIdAsParam = require(`../middlewares/setIdAsParam.js`);
 
 const upload = require('../middlewares/upload.js');
 
-router.use('/me', authController.protect);
+router.use('/me', authMiddleware.protect);
 
 router
   .route('/me')
-  .get(setIdAsParam('user'), userController.getUser)
-  .patch(upload.single('photo'), userController.updateUser)
-  .delete(userController.deleteMyAccount);
+  .get(setIdAsParam('user'), parentController.getUser)
+  .patch(upload.single('photo'), parentController.updateUser)
+  .delete(parentController.deleteMyAccount);
 
 router
   .route('/delete/:id')
   .delete(
-    authController.protect,
-    authController.restrictTo('admin'),
-    userController.deleteUser,
+    authMiddleware.protect,
+    parentChecksMiddleware.restrictTo('admin'),
+    parentController.deleteUser,
   );
 
-router.route('/').get(userController.getAllUsers);
+router.route('/').get(parentController.getAllUsers);
 
-router.route('/:id').get(userController.getUser);
+router.route('/:id').get(parentController.getUser);
 
 module.exports = router;

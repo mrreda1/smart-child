@@ -22,10 +22,7 @@ const upload = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(
-        new AppError('Only images are allowed!', StatusCodes.BAD_REQUEST),
-        false,
-      );
+      cb(new AppError('Only images are allowed!', StatusCodes.BAD_REQUEST), false);
     }
   },
 });

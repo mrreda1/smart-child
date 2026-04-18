@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { customAlphabet } = require('nanoid');
+const cascadeDeletePlugin = require('./plugins/cascadeDeletePlugin');
 const { Schema } = mongoose;
 
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -64,6 +65,11 @@ childSchema.set('toJSON', {
     delete ret._id;
     delete ret.__v;
   },
+});
+
+childSchema.plugin(cascadeDeletePlugin, {
+  modelName: 'ParentChild',
+  foreignKey: 'child_id',
 });
 
 const Child = mongoose.model('Child', childSchema);

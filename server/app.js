@@ -4,6 +4,7 @@ const globalErrorHandler = require('./controllers/error');
 const authRouter = require(`${__dirname}/routes/auth`);
 const userRouter = require(`${__dirname}/routes/user`);
 const childRouter = require(`${__dirname}/routes/child`);
+const coparentRouter = require(`${__dirname}/routes/coparent`);
 
 const setupMiddlewares = require(`${__dirname}/utils/middlewares`);
 
@@ -22,6 +23,8 @@ app.use(`/api/v${APIVersion}/auth`, authRouter);
 app.use(`/api/v${APIVersion}/user`, userRouter);
 
 app.use(`/api/v${APIVersion}/child`, childRouter);
+
+app.use(`/api/v${APIVersion}/coparent`, coparentRouter);
 
 // Error handler for invalid routes
 app.all('*', (req, res, next) => {
