@@ -29,12 +29,7 @@ exports.updateOne = (Model, sendResponse = true) =>
     const doc = await Model.findById(id);
 
     if (!doc) {
-      return next(
-        new AppError(
-          `Document with ID '${id}' not found.`,
-          StatusCodes.NOT_FOUND,
-        ),
-      );
+      return next(new AppError(`Document with ID '${id}' not found.`, StatusCodes.NOT_FOUND));
     }
 
     req[`old${capitalizedName}`] = doc.toObject();
@@ -69,10 +64,7 @@ exports.deleteOne = (Model, sendResponse = true) =>
     const doc = await Model.findById(id);
 
     if (!doc) {
-      const err = new AppError(
-        `Document with ID '${id}' not found.`,
-        StatusCodes.NOT_FOUND,
-      );
+      const err = new AppError(`Document with ID '${id}' not found.`, StatusCodes.NOT_FOUND);
       return next(err);
     }
 
@@ -94,10 +86,7 @@ exports.getOne = (Model) =>
     const doc = await Model.findById(id);
 
     if (!doc) {
-      const err = new AppError(
-        `Document with ID '${id}' not found.`,
-        StatusCodes.NOT_FOUND,
-      );
+      const err = new AppError(`Document with ID '${id}' not found.`, StatusCodes.NOT_FOUND);
       return next(err);
     }
 
@@ -113,11 +102,7 @@ exports.getOne = (Model) =>
 
 exports.getMany = (Model) =>
   catchAsync(async (req, res, next) => {
-    const features = new APIFeatures(Model.find(), req.query)
-      .sort()
-      .limit()
-      .filter()
-      .paginate();
+    const features = new APIFeatures(Model.find(), req.query).sort().limit().filter().paginate();
 
     const docs = await features.query;
 
@@ -128,6 +113,49 @@ exports.getMany = (Model) =>
       results: docs.length,
       data: {
         [docsName]: docs,
+      },
+    });
+  });
+
+exports.getOneWithDeepPopulate = (Model, queryConfig, populateConfig, sendResponse = true) =>
+  catchAsync(async (req, res, next) => {
+    const {
+      firstPath,
+      firstSelect = null,
+      firstMatch = {},
+      secondPath,
+      secondModel,
+      secondSelect = null,
+    } = populateConfig;
+
+    const filter = queryConfig.generateFilter(req);
+
+    const docName = Model.modelName.toLowerCase();
+
+    const innerPopulate = {
+      path: secondPath,
+      select: secondSelect,
+    };
+
+    if (secondModel) innerPopulate.model = secondModel;
+
+    const doc = await Model.findOne(filter).select(queryConfig.select).populate({
+      path: firstPath,
+      match: firstMatch,
+      select: firstSelect,
+      populate: innerPopulate,
+    });
+
+    if (!doc) throw new AppError(`No ${Model.modelName} found with this data.`, StatusCodes.NOT_FOUND);
+
+    if (!sendResponse) {
+      req[docName] = doc;
+      return next();
+    }
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      data: {
+        [docName]: doc,
       },
     });
   });

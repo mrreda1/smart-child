@@ -1,7 +1,9 @@
+const factory = require('../controllers/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const ParentChild = require('../models/parentChild');
 const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
+const ChildModel = require('../models/child');
 
 const checkParentChildLink = (extractChildId) =>
   catchAsync(async (req, res, next) => {
@@ -35,4 +37,15 @@ const checkParentChildOwnership = (extractRelationship) =>
     next();
   });
 
-module.exports = { checkParentChildLink, checkParentChildOwnership };
+const populateChildPrimaryParent = factory.getOneWithDeepPopulate(
+  ChildModel,
+  {
+    generateFilter: (req) => ({
+      share_code: req.body.shareCode,
+    }),
+  },
+  { firstPath: 'parents', firstMatch: { is_owner: true }, secondPath: 'parent_id', secondSelect: 'name email' },
+  false,
+);
+
+module.exports = { checkParentChildLink, checkParentChildOwnership, populateChildPrimaryParent };

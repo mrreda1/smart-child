@@ -51,7 +51,7 @@ const childSchema = new Schema({
   },
 });
 
-childSchema.virtual('parent_links', {
+childSchema.virtual('parents', {
   ref: 'ParentChild',
   localField: '_id',
   foreignField: 'child_id',

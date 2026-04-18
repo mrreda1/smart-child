@@ -9,7 +9,12 @@ const tokenMiddleware = require('../middlewares/token');
 
 router.use(authMiddleware.protect);
 
-router.post('/', parentChecksMiddleware.restrictToVerified, coparentController.requestCoParentAccess);
+router.post(
+  '/',
+  parentChecksMiddleware.restrictToVerified,
+  parentChildMiddleware.populateChildPrimaryParent,
+  coparentController.requestCoParentAccess,
+);
 
 router.patch(
   '/:token',

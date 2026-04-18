@@ -1,15 +1,28 @@
 const handlerFactory = require('./handlerFactory');
-const jwt = require('jsonwebtoken');
-const tokenModel = require('../models/token');
+const ParentModel = require('../models/Parent');
 const ChildModel = require('../models/child');
 const ParentChild = require('../models/parentChild');
 const catchAsync = require('../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes');
-const path = require('path');
-const { deleteFile } = require('../utils/files');
-const AppError = require('../utils/appError');
-const { sendChildLinkRequest } = require('../utils/email');
-const { default: mongoose } = require('mongoose');
+
+const getChild = handlerFactory.getOne(ChildModel);
+
+const getChildren = handlerFactory.getOneWithDeepPopulate(
+  ParentModel,
+  {
+    generateFilter: (req) => ({
+      _id: req.user.id,
+    }),
+    select: 'id',
+  },
+  {
+    firstPath: 'children',
+    firstMatch: { status: 'accepted' },
+    secondPath: 'child_id',
+  },
+);
+
+const updateChild = handlerFactory.updateOne(ChildModel, false);
 
 const createChild = catchAsync(async (req, res, next) => {
   const parentId = req.user.id;
@@ -31,10 +44,6 @@ const createChild = catchAsync(async (req, res, next) => {
   });
 });
 
-const getChild = handlerFactory.getOne(ChildModel);
-
-const updateChild = handlerFactory.updateOne(ChildModel, false);
-
 const sendUpdateResponse = async (req, res, next) => {
   res.status(StatusCodes.OK).json({
     status: 'success',
@@ -55,6 +64,7 @@ const sendDeleteResponse = async (req, res, next) => {
 
 module.exports = {
   createChild,
+  getChildren,
   getChild,
   updateChild,
   sendUpdateResponse,

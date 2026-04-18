@@ -43,14 +43,8 @@ const parentSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please provide a password.'],
-    minlength: [
-      passwordMinLength,
-      `Password should be more than or equal to ${passwordMinLength} characters`,
-    ],
-    maxlength: [
-      passwordMaxLength,
-      `Password should be less than or equal to ${passwordMaxLength} characters`,
-    ],
+    minlength: [passwordMinLength, `Password should be more than or equal to ${passwordMinLength} characters`],
+    maxlength: [passwordMaxLength, `Password should be less than or equal to ${passwordMaxLength} characters`],
     select: false,
   },
   passwordConfirm: {
@@ -83,10 +77,7 @@ const parentSchema = new mongoose.Schema({
 parentSchema.methods.createEmailVerificationToken = function () {
   const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
-  this.emailVerificationToken = crypto
-    .createHash('sha256')
-    .update(emailVerificationToken)
-    .digest('hex');
+  this.emailVerificationToken = crypto.createHash('sha256').update(emailVerificationToken).digest('hex');
 
   return emailVerificationToken;
 };
@@ -125,27 +116,21 @@ parentSchema.methods.signToken = function () {
 
 parentSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (!this.passwordChangedAt) return false;
-  const changedTimestamp = Math.floor(
-    this.passwordChangedAt.getTime() / 1e3,
-    10,
-  );
+  const changedTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1e3, 10);
   return changedTimestamp > JWTTimestamp;
 };
 
 parentSchema.methods.createPasswordResetToken = function (expireTime) {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   this.passwordResetExpires = Date.now() + expireTime * 60 * 1000;
 
   return resetToken;
 };
 
-parentSchema.virtual('child_links', {
+parentSchema.virtual('children', {
   ref: 'ParentChild',
   localField: '_id',
   foreignField: 'parent_id',

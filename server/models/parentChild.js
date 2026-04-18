@@ -29,7 +29,11 @@ parentChildSchema.index({ parent_id: 1, child_id: 1 }, { unique: true });
 parentChildSchema.set('toJSON', {
   virtuals: true,
   transform: function (doc, ret) {
+    ret.child = ret.child_id;
     delete ret._id;
+    delete ret.child_id;
+    delete ret.parent_id;
+    delete ret.id;
     delete ret.status;
     delete ret.__v;
   },

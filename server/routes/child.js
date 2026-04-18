@@ -22,6 +22,8 @@ router.post(
   childController.createChild,
 );
 
+router.get('/', childController.getChildren);
+
 router
   .route('/:id')
 

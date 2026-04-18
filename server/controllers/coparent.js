@@ -12,27 +12,13 @@ const tokenModel = require('../models/token');
 const email = require('../utils/email');
 
 const requestCoParentAccess = catchAsync(async (req, res, next) => {
-  const { shareCode } = req.body;
   const parentId = req.user.id;
+  const child = req.child;
 
-  const child = await ChildModel.findOne({ share_code: shareCode }).populate({
-    path: 'parent_links',
-    match: { is_owner: true },
-    populate: {
-      path: 'parent_id',
-      model: 'Parent',
-      select: 'name email',
-    },
-  });
-
-  if (!child) {
-    throw new AppError('No child found with that share code.', StatusCodes.NOT_FOUND);
-  }
-  if (!child.parent_links?.[0]?.parent_id) {
+  if (!child.parents?.[0]?.parent_id)
     throw new AppError('Data inconsistency: Child owner not found.', StatusCodes.INTERNAL_SERVER_ERROR);
-  }
 
-  const { name: ownerName, email: ownerEmail, id: ownerId } = child.parent_links[0].parent_id;
+  const { name: ownerName, email: ownerEmail, id: ownerId } = child.parents[0].parent_id;
 
   if (parentId === ownerId) throw new AppError('You are the owner of that child.', StatusCodes.BAD_REQUEST);
 
