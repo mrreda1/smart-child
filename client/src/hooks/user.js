@@ -1,19 +1,16 @@
-import { getCurrentUser, updateCurrentUser } from "@/services/userService";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import { getCurrentUser, updateCurrentUser } from '@/services/userService';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 
-const useGetUser = ({
-  refetchOnUnVerified = false,
-  refetchIntervalSec = 5,
-}) => {
+const useGetUser = ({ refetchOnUnVerified = false, refetchIntervalSec = 5 }) => {
   return useQuery({
-    queryKey: ["currentUser"],
+    queryKey: ['currentUser'],
     queryFn: getCurrentUser,
     staleTime: Infinity,
     refetchInterval: ({ state }) => {
       if (!refetchOnUnVerified) return false;
 
-      const isError = state.status === "error";
+      const isError = state.status === 'error';
 
       const isVerified = state.data?.verifiedEmail;
 
@@ -29,9 +26,9 @@ const useUpdateUser = () => {
   return useMutation({
     mutationFn: updateCurrentUser,
     onSuccess: (user) => {
-      queryClient.setQueryData(["currentUser"], user);
+      queryClient.setQueryData(['currentUser'], user);
 
-      toast.success("Updated");
+      toast.success('Updated');
     },
   });
 };

@@ -1,30 +1,28 @@
-import { Modal } from "@/components/common/Modal";
-import { THEME } from "@/constants/config";
-import { useAppContext } from "@/context/AppContext";
-import { Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Modal } from '@/components/common/Modal';
+import { THEME } from '@/constants/config';
+import { useAppContext } from '@/context/AppContext';
+import { Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export const PlayWarningModal = ({ isOpen, onClose, profile }) => {
+export const PlayWarningModal = ({ onClose, profile }) => {
   const { setActiveChild } = useAppContext();
   const navigate = useNavigate();
 
   const handleContinue = () => {
     setActiveChild(profile);
-    navigate("/child-dashboard");
+    navigate('/child-dashboard');
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal onClose={onClose}>
       <div className="text-center">
         <div className="w-16 h-16 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <Play size={32} fill="currentColor" />
         </div>
-        <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
-          Enter Child Mode?
-        </h2>
+        <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Enter Child Mode?</h2>
         <p className="text-gray-500 font-medium text-sm mb-8">
-          You are about to switch to the child's interface. To exit back to the
-          Parent Dashboard later, you will need to enter your parent password.
+          You are about to switch to the child's interface. To exit back to the Parent Dashboard later, you will need to
+          enter your parent password.
         </p>
         <div className="flex gap-3">
           <button

@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios from 'axios';
 
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 
-import authService from "@/services/authService";
+import authService from '@/services/authService';
 
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -11,13 +11,13 @@ const apiClient = axios.create({
   withCredentials: true,
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("jwt");
+    const token = localStorage.getItem('jwt');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,39 +38,34 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    let serverMessage = error.response.data?.message;
     const status = error.response.status;
 
-    let serverMessage = error.response.data?.message;
-
-    serverMessage = serverMessage && serverMessage.split(":").pop().trim();
+    serverMessage = serverMessage && serverMessage.split(':').pop().trim();
 
     switch (status) {
       case 400:
-        toast.error(
-          serverMessage || "Validation failed. Please check your inputs.",
-        );
+        toast.error(serverMessage || 'Validation failed. Please check your inputs.');
         break;
       case 401:
-        if (localStorage.getItem("jwt")) {
+        if (localStorage.getItem('jwt')) {
           toast.error(serverMessage);
           authService.logout(4);
         }
         break;
       case 403:
-        toast.error(
-          serverMessage || "You do not have permission to perform this action.",
-        );
+        toast.error(serverMessage || 'You do not have permission to perform this action.');
         break;
       case 404:
-        toast.error(serverMessage || "The requested resource was not found.");
+        toast.error(serverMessage || 'The requested resource was not found.');
         break;
       case 500:
       case 502:
       case 503:
-        toast.error("Server error. Our engineers have been notified.");
+        toast.error('Server error. Our engineers have been notified.');
         break;
       default:
-        toast.error(serverMessage || "An unexpected error occurred.");
+        toast.error(serverMessage || 'An unexpected error occurred.');
     }
 
     return Promise.reject(error);

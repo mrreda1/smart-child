@@ -14,12 +14,7 @@ exports.getAllUsers = factory.getMany(Parent);
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
-    return next(
-      new AppError(
-        'This route is not for user password updates.',
-        StatusCodes.BAD_REQUEST,
-      ),
-    );
+    return next(new AppError('This route is not for user password updates.', StatusCodes.BAD_REQUEST));
   }
 
   const currentUser = await Parent.findById(req.user.id);
@@ -45,7 +40,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   res.status(StatusCodes.OK).json({
     status: 'success',
     data: {
-      user: updatedUser,
+      parent: updatedUser,
     },
   });
 });

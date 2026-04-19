@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { Camera } from "lucide-react";
-import { THEME } from "@/constants/config";
+import React, { useState, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Camera } from 'lucide-react';
+import { THEME } from '@/constants/config';
 
 // Added maxSizeInMB prop with a default of 2
 const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
@@ -13,9 +13,11 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
     formState: { errors, dirtyFields },
   } = useFormContext();
 
+  console.log(initialPhoto);
+
   const [imgURL, setImgURL] = useState(initialPhoto);
   const fileInputRef = useRef(null);
-  let photoFile = watch("photo");
+  let photoFile = watch('photo');
   const prevPhotoFile = useRef(photoFile);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
       return () => URL.revokeObjectURL(objectUrl);
     } else if (photoFile && !photoFile.length) {
       // Preserve Previous File Input When The User Cancels OS File Form
-      setValue("photo", prevPhotoFile.current);
+      setValue('photo', prevPhotoFile.current);
       return;
     }
 
@@ -37,25 +39,16 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
   const handleRemove = (e) => {
     e.stopPropagation();
 
-    setValue("photo", "", { shouldDirty: true });
+    setValue('photo', '', { shouldDirty: true });
   };
 
   const isPhotoSelected = dirtyFields.photo;
 
   return (
     <div className="flex flex-col items-center sm:flex-row gap-8 pb-8 border-b border-slate-50">
-      <div
-        className="relative group cursor-pointer"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <div
-          className={`w-32 h-32 rounded-full border-4 ${THEME.primaryYellowBorder} p-1 overflow-hidden bg-slate-50`}
-        >
-          <img
-            src={imgURL}
-            alt="Profile"
-            className="w-full h-full object-cover rounded-full"
-          />
+      <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+        <div className={`w-32 h-32 rounded-full border-4 ${THEME.primaryYellowBorder} p-1 overflow-hidden bg-slate-50`}>
+          <img src={imgURL} alt="Profile" className="w-full h-full object-cover rounded-full" />
         </div>
 
         {/* Camera Icon (Upload) */}
@@ -70,21 +63,18 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
           accept="image/*"
           className="hidden"
           // Added validation logic here
-          {...register("photo", {
+          {...register('photo', {
             validate: {
               checkSize: (value) => {
                 if (!value || value.length === 0) return true; // Pass if empty
                 const file = value[0];
                 const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-                return (
-                  file.size <= maxSizeInBytes ||
-                  `Image must be smaller than ${maxSizeInMB}MB`
-                );
+                return file.size <= maxSizeInBytes || `Image must be smaller than ${maxSizeInMB}MB`;
               },
             },
           })}
           ref={(e) => {
-            register("photo").ref(e);
+            register('photo').ref(e);
             fileInputRef.current = e;
           }}
         />
@@ -96,12 +86,8 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
           {/* Made the text dynamic based on the prop */}
           JPG, GIF or PNG. Max size of {maxSizeInMB}MB
         </p>
-        <div
-          className={`flex flex-col sm:block ${!isPhotoSelected && "items-center"} gap-2`}
-        >
-          <div
-            className={`flex ${!isPhotoSelected && "justify-center sm:justify-normal"} gap-2`}
-          >
+        <div className={`flex flex-col sm:block ${!isPhotoSelected && 'items-center'} gap-2`}>
+          <div className={`flex ${!isPhotoSelected && 'justify-center sm:justify-normal'} gap-2`}>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -122,11 +108,7 @@ const ImageInputField = ({ initialPhoto, maxSizeInMB = 2 }) => {
           </div>
 
           {/* Added Error Message Display */}
-          {errors.photo && (
-            <p className="text-xs text-red-500 font-medium mt-2">
-              {errors.photo.message}
-            </p>
-          )}
+          {errors.photo && <p className="text-xs text-red-500 font-medium mt-2">{errors.photo.message}</p>}
         </div>
       </div>
     </div>

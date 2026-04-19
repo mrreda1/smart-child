@@ -1,21 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import authService from "@/services/authService";
-import { toast } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import authService from '@/services/authService';
+import { toast } from 'react-toastify';
 
 const useLogin = () => {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const onAuthSuccess = useAuthSuccess();
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
-    onSuccess: (data) =>
-      onAuthSuccess(
-        data,
-        [`Hello ${data.data.user.name}!`],
-        "/parent/dashboard",
-      ),
+    onSuccess: (data) => onAuthSuccess(data, [`Hello ${data.data.user.name}!`], '/parent/dashboard'),
   });
 
   return loginMutation;
@@ -29,11 +22,8 @@ const useSignup = () => {
     onSuccess: (data) =>
       onAuthSuccess(
         data,
-        [
-          "Account created successfully!",
-          "Please check your email to verify your account.",
-        ],
-        "/parent/dashboard",
+        ['Account created successfully!', 'Please check your email to verify your account.'],
+        '/parent/dashboard',
       ),
   });
 
@@ -44,15 +34,15 @@ const useAuthSuccess = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const handleAuthSuccess = (data, successMessages, navigateTo = "") => {
+  const handleAuthSuccess = (data, successMessages, navigateTo = '') => {
     const {
       token,
       data: { user },
     } = data;
 
-    localStorage.setItem("jwt", token);
+    localStorage.setItem('jwt', token);
 
-    queryClient.setQueryData(["currentUser"], user);
+    queryClient.setQueryData(['currentUser'], user);
 
     for (let sucessMsg of successMessages) toast.success(sucessMsg);
 
@@ -76,8 +66,8 @@ const useResetPass = () => {
   const resetPassMutation = useMutation({
     mutationFn: ({ data, token }) => authService.resetPass(data, token),
     onSuccess: () => {
-      toast.success("Password changed");
-      navigate("/login");
+      toast.success('Password changed');
+      navigate('/login');
     },
   });
 
@@ -108,16 +98,8 @@ const useChangePassword = () => {
 
   return useMutation({
     mutationFn: authService.updatePassword,
-    onSuccess: (data) => onAuthSuccess(data, ["Password is changed"]),
+    onSuccess: (data) => onAuthSuccess(data, ['Password is changed']),
   });
 };
 
-export {
-  useLogin,
-  useSignup,
-  useForgotPass,
-  useResetPass,
-  useVerifyEmail,
-  useConfirmEmail,
-  useChangePassword,
-};
+export { useLogin, useSignup, useForgotPass, useResetPass, useVerifyEmail, useConfirmEmail, useChangePassword };
