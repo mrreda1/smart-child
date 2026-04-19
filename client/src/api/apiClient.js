@@ -26,6 +26,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+let isHandling401 = false;
 apiClient.interceptors.response.use(
   (response) => {
     return response.data;
@@ -48,7 +49,8 @@ apiClient.interceptors.response.use(
         toast.error(serverMessage || 'Validation failed. Please check your inputs.');
         break;
       case 401:
-        if (localStorage.getItem('jwt')) {
+        if (!isHandling401) {
+          isHandling401 = true;
           toast.error(serverMessage);
           authService.logout(4);
         }

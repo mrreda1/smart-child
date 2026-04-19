@@ -2,8 +2,8 @@ import apiClient from '@/api/apiClient';
 
 const userStartEndpoint = 'user';
 
-const getCurrentUser = async () => {
-  const res = await apiClient.get(`${userStartEndpoint}/me`);
+const getCurrentUser = async (config) => {
+  const res = await apiClient.get(`${userStartEndpoint}/me`, config);
 
   return res.data.parent;
 };

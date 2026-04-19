@@ -97,14 +97,14 @@ const ParentDashboardHeader = () => {
         {/* Profile Snapshot in Drawer */}
         <div className="bg-yellow-50 p-5 rounded-[2rem] mb-8 border border-yellow-100 flex items-center gap-4">
           <img
-            src={`${import.meta.env.VITE_IMG_BASE_URL}/${userQuery.data?.photo}`}
+            src={userQuery.isSuccess ? `${import.meta.env.VITE_IMG_BASE_URL}/${userQuery.data.photo}` : undefined}
             className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
             alt="Me"
           />
           <div>
             <p className="text-xs font-black text-yellow-600 uppercase tracking-widest">Parent Account</p>
             <p className="text-lg font-bold text-gray-900 leading-tight">
-              {userQuery.isPending ? 'Loading...' : userQuery.data.name}
+              {userQuery.isSuccess ? userQuery.data.name : 'Loading...'}
             </p>
           </div>
         </div>

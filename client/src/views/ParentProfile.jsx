@@ -4,11 +4,11 @@ import { PersonalInfoForm } from '@/components/profile/parentProfile/PersonalInf
 import { SecurityForm } from '@/components/profile/parentProfile/SecurityForm';
 
 const ParentProfile = () => {
-  const userQuery = useGetUser({});
+  const userQuery = useGetUser();
 
   const user = userQuery.data;
 
-  if (userQuery.isLoading) return <GamifiedLoader />;
+  if (!userQuery.isSuccess) return <GamifiedLoader />;
 
   return (
     <>

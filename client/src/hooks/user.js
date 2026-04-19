@@ -2,21 +2,13 @@ import { getCurrentUser, updateCurrentUser } from '@/services/userService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 
-const useGetUser = ({ refetchOnUnVerified = false, refetchIntervalSec = 5 }) => {
+const useGetUser = (queryConfig = {}, axiosConfig) => {
   return useQuery({
     queryKey: ['currentUser'],
-    queryFn: getCurrentUser,
+    queryFn: () => getCurrentUser(axiosConfig),
     staleTime: Infinity,
-    refetchInterval: ({ state }) => {
-      if (!refetchOnUnVerified) return false;
-
-      const isError = state.status === 'error';
-
-      const isVerified = state.data?.verifiedEmail;
-
-      return isVerified || isError ? false : refetchIntervalSec * 1000;
-    },
     retry: false,
+    ...queryConfig,
   });
 };
 
