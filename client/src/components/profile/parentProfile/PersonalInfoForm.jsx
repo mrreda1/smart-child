@@ -1,7 +1,7 @@
 import { AlertCircle, BadgeCheck, Mail, Save, User } from "lucide-react";
 import { useForm, FormProvider } from "react-hook-form";
-import InputField from "../common/InputField";
-import ImageInputField from "../common/ImageInputField";
+import InputField from "../../common/InputField";
+import ImageInputField from "../../common/ImageInputField";
 import { namePattern } from "@/constants/pattern";
 import { THEME } from "@/constants/config";
 import { useTimer } from "@/hooks/Timer";

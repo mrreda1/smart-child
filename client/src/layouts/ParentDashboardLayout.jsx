@@ -1,6 +1,7 @@
-import { ParentDashboardHeader } from "@/components/common/ParentDashboardHeader";
-import { THEME } from "@/constants/config";
-import { Outlet } from "react-router-dom";
+import GamifiedLoader from '@/components/common/GamifiedLoader';
+import { ParentDashboardHeader } from '@/components/common/ParentDashboardHeader';
+import { THEME } from '@/constants/config';
+import { Outlet } from 'react-router-dom';
 
 const ParentDashboardLayout = () => {
   return (

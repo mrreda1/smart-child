@@ -1,5 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const AppError = require('./../utils/appError');
+const files = require('../utils/files');
 
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
@@ -78,7 +79,7 @@ const simplifyError = (err) => {
   return err;
 };
 
-module.exports = (err, req, res, next) => {
+module.exports = async (err, req, res, next) => {
   err.statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
   err.status = err.status || 'error';
 

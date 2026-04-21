@@ -1,34 +1,31 @@
-import "./App.css";
-import "react-toastify/dist/ReactToastify.css";
+import './App.css';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-import { AppContextProvider } from "./context/AppContext";
+import { AppContextProvider } from './context/AppContext';
 
-import LandingPage from "./views/LandingPage";
-import ParentDashboard from "./views/Dashboards/ParentDashboard";
-import ChildDashboard from "./views/Dashboards/ChildDashboard";
-import FreePlayMenu from "./views/Games/InteractiveGames";
-import GamifiedLoader from "./views/Games/GamifiedLoader";
-import GamePlay from "./views/Games/GamePlay";
-import ReportsDashboard from "./views/Dashboards/ReportsDashboard";
-import AuthLayoutWrapper from "./layouts/AuthLayout";
-import Login from "./views/Auth/Login";
-import Register from "./views/Auth/Register";
-import ForgotPassword from "./views/Auth/ForgotPassword";
-import ConfirmEmail from "./views/Auth/ConfirmEmail";
-import VerifyEmail from "./views/Auth/VerifyEmail";
-import ResetPassword from "./views/Auth/ResetPassword";
-
-import authService from "@/services/authService.js";
-
-import { ToastContainer } from "react-toastify";
-import { NotFoundPage } from "./views/NotFoundPage";
-import { ParentProfile } from "./views/ParentProfile";
-import { ParentDashboardLayout } from "./layouts/ParentDashboardLayout";
+import LandingPage from './views/LandingPage';
+import ParentDashboard from './views/Dashboards/ParentDashboard';
+import ChildDashboard from './views/Dashboards/ChildDashboard';
+import FreePlayMenu from './views/Games/InteractiveGames';
+import GamePlay from './views/Games/GamePlay';
+import ReportsDashboard from './views/Dashboards/ReportsDashboard';
+import AuthLayoutWrapper from './layouts/AuthLayout';
+import Login from './views/Auth/Login';
+import Register from './views/Auth/Register';
+import ForgotPassword from './views/Auth/ForgotPassword';
+import ConfirmEmail from './views/Auth/ConfirmEmail';
+import VerifyEmail from './views/Auth/VerifyEmail';
+import ResetPassword from './views/Auth/ResetPassword';
+import { ToastContainer } from 'react-toastify';
+import { NotFoundPage } from './views/NotFoundPage';
+import { ParentProfile } from './views/ParentProfile';
+import { ParentDashboardLayout } from './layouts/ParentDashboardLayout';
+import CoparentActionPage from './views/CoparentActionPage';
 
 const basename = import.meta.env.VITE_URL_BASENAME;
 
@@ -44,7 +41,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContextProvider>
-        <Router basename={basename || "/"}>
+        <Router basename={basename || '/'}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
 
@@ -53,7 +50,7 @@ export default function App() {
               <Route path="profile" element={<ParentProfile />} />
               <Route path="child/reports" element={<ReportsDashboard />} />
             </Route>
-
+            <Route path="access-decision/:token" element={<CoparentActionPage />} />
             <Route path="/child-dashboard" element={<ChildDashboard />} />
             <Route path="/free-play" element={<FreePlayMenu />} />
             <Route path="/game" element={<GamePlay />} />
@@ -64,10 +61,7 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
-              <Route
-                path="/reset-password/:token"
-                element={<ResetPassword />}
-              />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

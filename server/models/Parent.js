@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const passwordMinLength = 8;
 const passwordMaxLength = 30;
 
-const userSchema = new mongoose.Schema({
+const parentSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'A user must have a name.'],
@@ -43,14 +43,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please provide a password.'],
-    minlength: [
-      passwordMinLength,
-      `Password should be more than or equal to ${passwordMinLength} characters`,
-    ],
-    maxlength: [
-      passwordMaxLength,
-      `Password should be less than or equal to ${passwordMaxLength} characters`,
-    ],
+    minlength: [passwordMinLength, `Password should be more than or equal to ${passwordMinLength} characters`],
+    maxlength: [passwordMaxLength, `Password should be less than or equal to ${passwordMaxLength} characters`],
     select: false,
   },
   passwordConfirm: {
@@ -80,23 +74,20 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.methods.createEmailVerificationToken = function () {
+parentSchema.methods.createEmailVerificationToken = function () {
   const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
-  this.emailVerificationToken = crypto
-    .createHash('sha256')
-    .update(emailVerificationToken)
-    .digest('hex');
+  this.emailVerificationToken = crypto.createHash('sha256').update(emailVerificationToken).digest('hex');
 
   return emailVerificationToken;
 };
 
-userSchema.pre(/^find/, function (next) {
+parentSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
 
-userSchema.pre('save', async function (next) {
+parentSchema.pre('save', async function (next) {
   // Only run if password was modified.
   if (!this.isModified('password') || !this.password) {
     return next();
@@ -110,40 +101,51 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.methods.passwordMatch = async function (testPassword) {
+parentSchema.methods.passwordMatch = async function (testPassword) {
   if (!testPassword) {
     return false;
   }
   return await bcrypt.compare(testPassword, this.password);
 };
 
-userSchema.methods.signToken = function () {
+parentSchema.methods.signToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFETIME,
   });
 };
 
-userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+parentSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (!this.passwordChangedAt) return false;
-  const changedTimestamp = Math.floor(
-    this.passwordChangedAt.getTime() / 1e3,
-    10,
-  );
+  const changedTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1e3, 10);
   return changedTimestamp > JWTTimestamp;
 };
 
-userSchema.methods.createPasswordResetToken = function (expireTime) {
+parentSchema.methods.createPasswordResetToken = function (expireTime) {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   this.passwordResetExpires = Date.now() + expireTime * 60 * 1000;
 
   return resetToken;
 };
-const User = mongoose.model('User', userSchema);
 
-module.exports = User;
+parentSchema.virtual('children', {
+  ref: 'ParentChild',
+  localField: '_id',
+  foreignField: 'parent_id',
+});
+
+parentSchema.set('toObject', { virtuals: true });
+
+parentSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete ret._id;
+    delete ret.__v;
+  },
+});
+
+const Parent = mongoose.model('Parent', parentSchema);
+
+module.exports = Parent;

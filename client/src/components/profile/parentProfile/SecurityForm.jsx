@@ -1,5 +1,5 @@
 import { Lock, ShieldCheck } from "lucide-react";
-import InputField from "../common/InputField";
+import InputField from "../../common/InputField";
 import { useForm } from "react-hook-form";
 import { useChangePassword } from "@/hooks/auth";
 
