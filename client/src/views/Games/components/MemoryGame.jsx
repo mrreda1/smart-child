@@ -1,10 +1,11 @@
-import { playSound, SOUNDS } from "@/assets";
-import { IS_DEV } from "@/constants/config";
-import { Puzzle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { SOUNDS } from '@/assets';
+import { playSound } from '@/utils/sound';
+import { IS_DEV } from '@/constants/config';
+import { Puzzle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
-  const ALL_ICONS = ["🐶", "🐱", "🐭", "🐰", "🦊", "🐻", "🐸", "🐼"];
+const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
+  const ALL_ICONS = ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐸', '🐼'];
   const [cards, setCards] = useState([]);
   const [flippedIndices, setFlippedIndices] = useState([]);
   const [matches, setMatches] = useState(0);
@@ -16,26 +17,24 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
   const [pairTimestamps, setPairTimestamps] = useState([]);
   const [showDevMetrics, setShowDevMetrics] = useState(false);
 
-  const targetPairs = difficulty === "easy" ? 3 : difficulty === "hard" ? 8 : 6;
-  const gridColsClass = difficulty === "easy" ? "grid-cols-3" : "grid-cols-4";
+  const targetPairs = difficulty === 'easy' ? 3 : difficulty === 'hard' ? 8 : 6;
+  const gridColsClass = difficulty === 'easy' ? 'grid-cols-3' : 'grid-cols-4';
   const cardSizeClass =
-    difficulty === "easy"
-      ? "text-5xl sm:text-6xl rounded-[1.5rem]"
-      : "text-4xl sm:text-5xl rounded-xl";
-  const iconSize = difficulty === "easy" ? 48 : 32;
+    difficulty === 'easy' ? 'text-5xl sm:text-6xl rounded-[1.5rem]' : 'text-4xl sm:text-5xl rounded-xl';
+  const iconSize = difficulty === 'easy' ? 48 : 32;
 
   useEffect(() => {
     let pairCount = 6;
     let useJoker = false;
 
-    if (difficulty === "easy") {
+    if (difficulty === 'easy') {
       pairCount = 3;
     }
-    if (difficulty === "medium") {
+    if (difficulty === 'medium') {
       pairCount = 6;
       useJoker = false;
     }
-    if (difficulty === "hard") {
+    if (difficulty === 'hard') {
       pairCount = 8;
     }
 
@@ -50,8 +49,8 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
 
     if (useJoker) {
       deck.push({
-        id: "joker",
-        emoji: "🌟",
+        id: 'joker',
+        emoji: '🌟',
         isFlipped: true,
         isMatched: true,
         isJoker: true,
@@ -66,9 +65,7 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
       setPreviewTime(timeLeft);
       if (timeLeft <= 0) {
         clearInterval(interval);
-        setCards((prevCards) =>
-          prevCards.map((c) => ({ ...c, isFlipped: c.isJoker ? true : false })),
-        );
+        setCards((prevCards) => prevCards.map((c) => ({ ...c, isFlipped: c.isJoker ? true : false })));
         setIsPreviewing(false);
         setGameStartTime(Date.now());
       }
@@ -78,13 +75,7 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
   }, [difficulty]);
 
   const handleCardClick = (index) => {
-    if (
-      isPreviewing ||
-      flippedIndices.length === 2 ||
-      cards[index].isFlipped ||
-      cards[index].isMatched
-    )
-      return;
+    if (isPreviewing || flippedIndices.length === 2 || cards[index].isFlipped || cards[index].isMatched) return;
 
     playSound(SOUNDS.click);
 
@@ -103,8 +94,7 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
       const newTimestamps = [...pairTimestamps, currentClickTime];
       setPairTimestamps(newTimestamps);
 
-      const match =
-        newCards[newFlipped[0]].emoji === newCards[newFlipped[1]].emoji;
+      const match = newCards[newFlipped[0]].emoji === newCards[newFlipped[1]].emoji;
 
       if (match) {
         playSound(SOUNDS.match);
@@ -124,6 +114,7 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
 
         if (currentMatches === targetPairs) {
           const AR = ((currentMatches / currentMoves) * 100).toFixed(1);
+
           let sumDiff = 0;
           let prevT = gameStartTime;
           newTimestamps.forEach((t) => {
@@ -137,13 +128,19 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
               onFinish(Math.max(10, 50 - currentMoves), {
                 AR,
                 ARL,
-                N: currentMoves,
                 targetPairs: targetPairs,
+                rawData: {
+                  total_moves: currentMoves,
+                  total_matches: currentMatches,
+                  total_time_ms: sumDiff,
+                },
               }),
             800,
           );
         }
       } else {
+        playSound(SOUNDS.wrong);
+
         setTimeout(() => {
           setCards((prevCards) => {
             const revertedCards = [...prevCards];
@@ -182,13 +179,11 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
             onClick={() => setShowDevMetrics(!showDevMetrics)}
             className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 opacity-30 hover:opacity-100 transition-opacity"
           >
-            {showDevMetrics ? "Hide Dev Metrics" : "Show Dev Metrics"}
+            {showDevMetrics ? 'Hide Dev Metrics' : 'Show Dev Metrics'}
           </button>
           {showDevMetrics && (
             <div className="bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-2xl shadow-xl border border-gray-700 w-52 text-left">
-              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">
-                Live Dev Metrics
-              </div>
+              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">Live Dev Metrics</div>
               <div className="mb-1 text-blue-300">Metric A: Accuracy</div>
               <div className="mb-1 ml-2">- Target Pairs: {targetPairs}</div>
               <div className="mb-1 ml-2">- Correct: {matches}</div>
@@ -211,22 +206,17 @@ const MemoryGame = ({ onFinish, difficulty = "medium" }) => {
           </div>
         )}
       </div>
-      <div
-        className={`grid ${gridColsClass} gap-3 md:gap-4 w-full px-4 touch-none select-none`}
-      >
+      <div className={`grid ${gridColsClass} gap-3 md:gap-4 w-full px-4 touch-none select-none`}>
         {cards.map((card, idx) => (
           <div
             key={card.id}
             onClick={() => handleCardClick(idx)}
-            className={`aspect-square ${cardSizeClass} flex items-center justify-center cursor-pointer select-none transition-all duration-300 transform-gpu will-change-transform ${card.isFlipped || card.isMatched ? "bg-white shadow-md rotate-y-180" : "bg-[#FFC82C] border-b-8 border-[#E5B427] hover:scale-105"} ${card.isJoker ? "opacity-80" : ""}`}
+            className={`aspect-square ${cardSizeClass} flex items-center justify-center cursor-pointer select-none transition-all duration-300 transform-gpu will-change-transform ${card.isFlipped || card.isMatched ? 'bg-white shadow-md rotate-y-180' : 'bg-[#FFC82C] border-b-8 border-[#E5B427] hover:scale-105'} ${card.isJoker ? 'opacity-80' : ''}`}
           >
             {card.isFlipped || card.isMatched ? (
               card.emoji
             ) : (
-              <Puzzle
-                size={iconSize}
-                className="text-yellow-600/30 pointer-events-none"
-              />
+              <Puzzle size={iconSize} className="text-yellow-600/30 pointer-events-none" />
             )}
           </div>
         ))}

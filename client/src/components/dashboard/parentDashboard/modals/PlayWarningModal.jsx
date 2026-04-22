@@ -1,16 +1,13 @@
 import { Modal } from '@/components/common/Modal';
 import { THEME } from '@/constants/config';
-import { useAppContext } from '@/context/AppContext';
 import { Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const PlayWarningModal = ({ onClose, profile }) => {
-  const { setActiveChild } = useAppContext();
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    setActiveChild(profile);
-    navigate('/child-dashboard');
+    navigate('/child-dashboard', { state: { profile } });
   };
 
   return (

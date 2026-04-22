@@ -109,7 +109,7 @@ const ParentDashboard = () => {
                 key={pc.child.id}
                 profile={pc.child}
                 isLinked={!pc.is_owner}
-                onPlay={() => openModal('PLAY_WARNING', pc)}
+                onPlay={() => openModal('PLAY_WARNING', pc.child)}
                 onViewReports={() => {
                   navigate('/parent/child/reports', { state: { nextView: '/reports' } });
                 }}

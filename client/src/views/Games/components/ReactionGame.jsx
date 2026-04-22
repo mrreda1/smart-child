@@ -1,23 +1,17 @@
-import { playSound, SOUNDS } from "@/assets";
-import { IS_DEV, THEME } from "@/constants/config";
-import { Bug, Timer } from "lucide-react";
-import { useEffect, useState } from "react";
+import { playSound } from '@/utils/sound';
+import { SOUNDS } from '@/assets';
+import { IS_DEV, THEME } from '@/constants/config';
+import { Bug, Timer } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const ReactionGame = ({ onFinish, difficulty = "medium" }) => {
-  const [position, setPosition] = useState({ top: "50%", left: "50%" });
+const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
+  const [position, setPosition] = useState({ top: '50%', left: '50%' });
   const [successfulHits, setSuccessfulHits] = useState(0);
   const [totalTaps, setTotalTaps] = useState(0);
 
-  const initialTime =
-    difficulty === "easy" ? 20 : difficulty === "hard" ? 10 : 12;
-  const bugSizeClass =
-    difficulty === "easy"
-      ? "w-28 h-28"
-      : difficulty === "hard"
-        ? "w-12 h-12"
-        : "w-16 h-16";
-  const bugIconSize =
-    difficulty === "easy" ? 56 : difficulty === "hard" ? 24 : 32;
+  const initialTime = difficulty === 'easy' ? 20 : difficulty === 'hard' ? 10 : 12;
+  const bugSizeClass = difficulty === 'easy' ? 'w-28 h-28' : difficulty === 'hard' ? 'w-12 h-12' : 'w-16 h-16';
+  const bugIconSize = difficulty === 'easy' ? 56 : difficulty === 'hard' ? 24 : 32;
 
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,19 +25,18 @@ const ReactionGame = ({ onFinish, difficulty = "medium" }) => {
       const timer = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && isPlaying) {
-      const PI =
-        totalTaps === 0
-          ? "0.0"
-          : ((successfulHits / totalTaps) * 100).toFixed(1);
-      const MRT =
-        successfulHits === 0
-          ? "0"
-          : (sumResponseTime / successfulHits).toFixed(0);
+      const PI = totalTaps === 0 ? '0.0' : ((successfulHits / totalTaps) * 100).toFixed(1);
+
+      const MRT = successfulHits === 0 ? '0' : (sumResponseTime / successfulHits).toFixed(0);
+
       onFinish(successfulHits * 10, {
         MRT,
         PI,
-        totalHits: successfulHits,
-        totalTaps,
+        rawData: {
+          total_taps: totalTaps,
+          successful_hits: successfulHits,
+          sum_response_time_ms: sumResponseTime,
+        },
       });
     }
   }, [timeLeft, isPlaying]);
@@ -85,10 +78,8 @@ const ReactionGame = ({ onFinish, difficulty = "medium" }) => {
     moveTarget();
   };
 
-  const livePI =
-    totalTaps === 0 ? "0.0" : ((successfulHits / totalTaps) * 100).toFixed(1);
-  const liveMRT =
-    successfulHits === 0 ? "0" : (sumResponseTime / successfulHits).toFixed(0);
+  const livePI = totalTaps === 0 ? '0.0' : ((successfulHits / totalTaps) * 100).toFixed(1);
+  const liveMRT = successfulHits === 0 ? '0' : (sumResponseTime / successfulHits).toFixed(0);
 
   return (
     <div
@@ -104,16 +95,14 @@ const ReactionGame = ({ onFinish, difficulty = "medium" }) => {
             }}
             className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 opacity-30 hover:opacity-100 transition-opacity"
           >
-            {showDevMetrics ? "Hide Dev Metrics" : "Show Dev Metrics"}
+            {showDevMetrics ? 'Hide Dev Metrics' : 'Show Dev Metrics'}
           </button>
           {showDevMetrics && (
             <div
               className="bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-2xl shadow-xl border border-gray-700 w-52 text-left"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">
-                Live Dev Metrics
-              </div>
+              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">Live Dev Metrics</div>
               <div className="mb-1 text-blue-300">Metric A: Precision</div>
               <div className="mb-1 ml-2">- Hits: {successfulHits}</div>
               <div className="mb-1 ml-2">- Selections: {totalTaps}</div>
@@ -148,7 +137,7 @@ const ReactionGame = ({ onFinish, difficulty = "medium" }) => {
         style={{
           top: position.top,
           left: position.left,
-          transform: "translate(-50%, -50%)",
+          transform: 'translate(-50%, -50%)',
         }}
         className={`absolute ${bugSizeClass} bg-[#ff5e5e] rounded-full flex items-center justify-center shadow-lg active:scale-75 transition-transform transform-gpu will-change-transform`}
       >

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   button:disabled {
@@ -13,4 +13,14 @@
 
 #root {
   height: 100vh;
+}
+
+.bg-sky-img {
+  background-image: url('./assets/images/sky.jpg');
+
+  background-size: cover;
+
+  background-position: center;
+
+  background-repeat: no-repeat;
 }
