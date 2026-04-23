@@ -1,5 +1,5 @@
 const handlerFactory = require('./handlerFactory');
-const ParentModel = require('../models/Parent');
+const ParentModel = require('../models/parent');
 const ChildModel = require('../models/child');
 const ParentChild = require('../models/parentChild');
 const catchAsync = require('../utils/catchAsync');
@@ -23,6 +23,15 @@ const getChildren = handlerFactory.getOneWithDeepPopulate(
 );
 
 const updateChild = handlerFactory.updateOne(ChildModel, false);
+
+const getCurrentChild = catchAsync((req, res, next) => {
+  res.json({
+    status: 'success',
+    data: {
+      child: req.child,
+    },
+  });
+});
 
 const createChild = catchAsync(async (req, res, next) => {
   const parentId = req.user.id;
@@ -66,6 +75,7 @@ module.exports = {
   createChild,
   getChildren,
   getChild,
+  getCurrentChild,
   updateChild,
   sendUpdateResponse,
   deleteChild,

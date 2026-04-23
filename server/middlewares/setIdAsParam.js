@@ -1,6 +1,6 @@
-const setIdAsParam = (key) => {
+const setIdAsParam = (src, srcKey = 'id', dest = 'id') => {
   return (req, res, next) => {
-    req.params.id = req[key].id;
+    req.params[dest] = req[src][srcKey];
     next();
   };
 };

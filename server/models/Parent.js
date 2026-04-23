@@ -109,7 +109,7 @@ parentSchema.methods.passwordMatch = async function (testPassword) {
 };
 
 parentSchema.methods.signToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: 'parent' }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFETIME,
   });
 };
@@ -143,6 +143,7 @@ parentSchema.set('toJSON', {
   transform: function (doc, ret) {
     delete ret._id;
     delete ret.__v;
+    delete ret.password;
   },
 });
 

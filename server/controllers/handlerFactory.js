@@ -80,17 +80,18 @@ exports.deleteOne = (Model, sendResponse = true) =>
     });
   });
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, sendResponse = true) =>
   catchAsync(async (req, res, next) => {
     const id = req.params.id;
     const doc = await Model.findById(id);
 
-    if (!doc) {
-      const err = new AppError(`Document with ID '${id}' not found.`, StatusCodes.NOT_FOUND);
-      return next(err);
-    }
+    if (!doc) throw new AppError(`Document with ID '${id}' not found.`, StatusCodes.NOT_FOUND);
 
     const docName = Model.modelName.toLowerCase();
+
+    req[docName] = doc;
+
+    if (!sendResponse) return next();
 
     res.status(StatusCodes.OK).json({
       status: 'success',
