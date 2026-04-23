@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import authService from '@/services/authService';
 import { toast } from 'react-toastify';
+import { useJwt } from '@/context/JwtProvider';
 
 const useLogin = () => {
   const onAuthSuccess = useAuthSuccess();
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
-    onSuccess: (data) => onAuthSuccess(data, [`Hello ${data.data.user.name}!`], '/parent/dashboard'),
+    onSuccess: (data) => onAuthSuccess(data, [`Hello ${data.data.parent.name}!`]),
   });
 
   return loginMutation;
@@ -20,11 +21,7 @@ const useSignup = () => {
   const signupMutation = useMutation({
     mutationFn: authService.signup,
     onSuccess: (data) =>
-      onAuthSuccess(
-        data,
-        ['Account created successfully!', 'Please check your email to verify your account.'],
-        '/parent/dashboard',
-      ),
+      onAuthSuccess(data, ['Account created successfully!', 'Please check your email to verify your account.']),
   });
 
   return signupMutation;
@@ -32,21 +29,20 @@ const useSignup = () => {
 
 const useAuthSuccess = () => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
-  const handleAuthSuccess = (data, successMessages, navigateTo = '') => {
+  const { updateToken } = useJwt();
+
+  const handleAuthSuccess = (data, successMessages) => {
     const {
       token,
-      data: { user },
+      data: { parent },
     } = data;
 
-    localStorage.setItem('jwt', token);
+    updateToken(token);
 
-    queryClient.setQueryData(['currentUser'], user);
+    queryClient.setQueryData(['currentUser'], parent);
 
     for (let sucessMsg of successMessages) toast.success(sucessMsg);
-
-    if (navigateTo) navigate(navigateTo);
   };
 
   return handleAuthSuccess;
@@ -102,4 +98,47 @@ const useChangePassword = () => {
   });
 };
 
-export { useLogin, useSignup, useForgotPass, useResetPass, useVerifyEmail, useConfirmEmail, useChangePassword };
+const useSwitchToChild = (childProfile) => {
+  const { updateToken } = useJwt();
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: authService.switchToChild,
+    onSuccess: ({ token }) => {
+      queryClient.setQueryData(['currentChild'], childProfile);
+
+      queryClient.removeQueries([['children', 'currentUser']]);
+
+      updateToken(token);
+    },
+  });
+};
+
+const useSwitchToParent = (axiosConfig) => {
+  const { updateToken } = useJwt();
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => authService.switchToParent(data, axiosConfig),
+    onSuccess: ({ token, parent }) => {
+      queryClient.removeQueries(['currentChild']);
+      queryClient.setQueryData(['currentUser'], parent);
+
+      updateToken(token);
+    },
+  });
+};
+
+export {
+  useLogin,
+  useSignup,
+  useForgotPass,
+  useResetPass,
+  useVerifyEmail,
+  useConfirmEmail,
+  useChangePassword,
+  useSwitchToChild,
+  useSwitchToParent,
+};

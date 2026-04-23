@@ -14,18 +14,12 @@ const Login = () => {
   const navigate = useNavigate();
   const login = useLogin();
 
-  const getUserQuery = useGetUser({ refetchOnMount: true }, { silent_error: true });
-
   const {
     handleSubmit,
     register,
     getValues: getFormData,
     formState: { errors },
   } = useForm();
-
-  useEffect(() => {
-    if (getUserQuery.isSuccess && getUserQuery.isFetchedAfterMount) navigate('/parent/dashboard');
-  }, [getUserQuery.isSuccess, getUserQuery.isFetchedAfterMount]);
 
   const handleLogin = (data) => {
     login.mutate(data);

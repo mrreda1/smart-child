@@ -12,6 +12,8 @@ const { checkParentChildLink, checkParentChildOwnership } = require('../middlewa
 
 const { cleanupOldFile } = require('../middlewares/cleanupOldFile');
 
+router.get('/me', authMiddleware.protectChild, childController.getCurrentChild);
+
 router.use(authMiddleware.protect);
 
 router.post(

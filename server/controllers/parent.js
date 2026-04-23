@@ -1,4 +1,4 @@
-const Parent = require('../models/Parent');
+const Parent = require('../models/parent');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');

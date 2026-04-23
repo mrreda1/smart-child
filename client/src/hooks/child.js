@@ -1,6 +1,14 @@
-import { createChild, deleteChild, getChildren, updateChild } from '@/services/childService';
+import { createChild, deleteChild, getChildren, updateChild, getCurrentChild } from '@/services/childService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+
+const useGetCurrentChild = (initialData) =>
+  useQuery({
+    queryFn: getCurrentChild,
+    queryKey: ['currentChild'],
+    initialData,
+    staleTime: Infinity,
+  });
 
 const useGetChildren = () =>
   useQuery({
@@ -48,4 +56,4 @@ const useDeleteChild = () => {
   });
 };
 
-export { useGetChildren, useCreateChild, useUpdateChild, useDeleteChild };
+export { useGetCurrentChild, useGetChildren, useCreateChild, useUpdateChild, useDeleteChild };

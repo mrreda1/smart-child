@@ -16,7 +16,7 @@ const checkParentChildLink = (extractChildId) =>
       child_id: childId,
     });
 
-    if (!relationship)
+    if (!relationship || relationship.status !== 'accepted')
       throw new AppError('Forbidden: You do not have permission to access this child profile.', StatusCodes.FORBIDDEN);
 
     req.parentChildLink = relationship.toObject();

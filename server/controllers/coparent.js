@@ -5,7 +5,7 @@ const AppError = require('../utils/appError');
 const { sendChildLinkRequest } = require('../utils/email');
 
 const ChildModel = require('../models/child');
-const ParentModel = require('../models/Parent');
+const ParentModel = require('../models/parent');
 const ParentChildModel = require('../models/parentChild');
 const tokenModel = require('../models/token');
 

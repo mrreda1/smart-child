@@ -1,32 +1,33 @@
-import { playSound, SOUNDS } from "@/assets";
-import { IS_DEV } from "@/constants/config";
-import { Circle, Heart, Square, Star, Triangle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { playSound } from '@/utils/sound';
+import { SOUNDS } from '@/assets';
+import { IS_DEV } from '@/constants/config';
+import { Circle, Heart, Square, Star, Triangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const ColorGame = ({ onFinish, difficulty = "medium" }) => {
+const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
   const SHAPES = [
-    { id: "heart", Icon: Heart },
-    { id: "star", Icon: Star },
-    { id: "circle", Icon: Circle },
-    { id: "square", Icon: Square },
-    { id: "triangle", Icon: Triangle },
+    { id: 'heart', Icon: Heart },
+    { id: 'star', Icon: Star },
+    { id: 'circle', Icon: Circle },
+    { id: 'square', Icon: Square },
+    { id: 'triangle', Icon: Triangle },
   ];
 
   const COLOR_VARIANTS = {
     Red: [
-      { bg: "#fee2e2", fg: "#dc2626" },
-      { bg: "#fca5a5", fg: "#ef4444" },
-      { bg: "#f87171", fg: "#ef4444" },
+      { bg: '#fee2e2', fg: '#dc2626' },
+      { bg: '#fca5a5', fg: '#ef4444' },
+      { bg: '#f87171', fg: '#ef4444' },
     ],
     Green: [
-      { bg: "#dcfce7", fg: "#16a34a" },
-      { bg: "#86efac", fg: "#22c55e" },
-      { bg: "#4ade80", fg: "#22c55e" },
+      { bg: '#dcfce7', fg: '#16a34a' },
+      { bg: '#86efac', fg: '#22c55e' },
+      { bg: '#4ade80', fg: '#22c55e' },
     ],
     Blue: [
-      { bg: "#dbeafe", fg: "#2563eb" },
-      { bg: "#93c5fd", fg: "#3b82f6" },
-      { bg: "#60a5fa", fg: "#3b82f6" },
+      { bg: '#dbeafe', fg: '#2563eb' },
+      { bg: '#93c5fd', fg: '#3b82f6' },
+      { bg: '#60a5fa', fg: '#3b82f6' },
     ],
   };
 
@@ -45,32 +46,32 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
 
   useEffect(() => {
     let pool = [];
-    if (difficulty === "easy") {
+    if (difficulty === 'easy') {
       pool = [
-        { color: "Red", diff: 0 },
-        { color: "Green", diff: 0 },
-        { color: "Blue", diff: 0 },
-        { color: "Red", diff: 0 },
+        { color: 'Red', diff: 0 },
+        { color: 'Green', diff: 0 },
+        { color: 'Blue', diff: 0 },
+        { color: 'Red', diff: 0 },
       ].sort(() => Math.random() - 0.5);
-    } else if (difficulty === "hard") {
+    } else if (difficulty === 'hard') {
       pool = [
-        { color: "Red", diff: 2 },
-        { color: "Green", diff: 2 },
-        { color: "Blue", diff: 2 },
-        { color: "Red", diff: 2 },
-        { color: "Green", diff: 2 },
-        { color: "Blue", diff: 2 },
-        { color: "Red", diff: 2 },
-        { color: "Green", diff: 2 },
+        { color: 'Red', diff: 2 },
+        { color: 'Green', diff: 2 },
+        { color: 'Blue', diff: 2 },
+        { color: 'Red', diff: 2 },
+        { color: 'Green', diff: 2 },
+        { color: 'Blue', diff: 2 },
+        { color: 'Red', diff: 2 },
+        { color: 'Green', diff: 2 },
       ].sort(() => Math.random() - 0.5);
     } else {
       pool = [
-        { color: "Red", diff: 1 },
-        { color: "Red", diff: 2 },
-        { color: "Green", diff: 1 },
-        { color: "Green", diff: 2 },
-        { color: "Blue", diff: 1 },
-        { color: "Blue", diff: 2 },
+        { color: 'Red', diff: 1 },
+        { color: 'Red', diff: 2 },
+        { color: 'Green', diff: 1 },
+        { color: 'Green', diff: 2 },
+        { color: 'Blue', diff: 1 },
+        { color: 'Blue', diff: 2 },
       ].sort(() => Math.random() - 0.5);
     }
 
@@ -108,44 +109,29 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
       ...colorStats,
       [roundData.color]: {
         prompts: colorStats[roundData.color].prompts + 1,
-        hits: isCorrect
-          ? colorStats[roundData.color].hits + 1
-          : colorStats[roundData.color].hits,
+        hits: isCorrect ? colorStats[roundData.color].hits + 1 : colorStats[roundData.color].hits,
       },
     };
     setColorStats(newColorStats);
 
-    const newCorrectIdentifications = isCorrect
-      ? correctIdentifications + 1
-      : correctIdentifications;
+    const newCorrectIdentifications = isCorrect ? correctIdentifications + 1 : correctIdentifications;
     setCorrectIdentifications(newCorrectIdentifications);
 
     if (currentRound + 1 >= rounds.length) {
-      const AR = (
-        (newCorrectIdentifications / newTotalSelections) *
-        100
-      ).toFixed(1);
+      const AR = ((newCorrectIdentifications / newTotalSelections) * 100).toFixed(1);
+
       const RedProfile =
         newColorStats.Red.prompts === 0
-          ? "0.0"
-          : (
-              (newColorStats.Red.hits / newColorStats.Red.prompts) *
-              100
-            ).toFixed(1);
+          ? '0.0'
+          : ((newColorStats.Red.hits / newColorStats.Red.prompts) * 100).toFixed(1);
       const GreenProfile =
         newColorStats.Green.prompts === 0
-          ? "0.0"
-          : (
-              (newColorStats.Green.hits / newColorStats.Green.prompts) *
-              100
-            ).toFixed(1);
+          ? '0.0'
+          : ((newColorStats.Green.hits / newColorStats.Green.prompts) * 100).toFixed(1);
       const BlueProfile =
         newColorStats.Blue.prompts === 0
-          ? "0.0"
-          : (
-              (newColorStats.Blue.hits / newColorStats.Blue.prompts) *
-              100
-            ).toFixed(1);
+          ? '0.0'
+          : ((newColorStats.Blue.hits / newColorStats.Blue.prompts) * 100).toFixed(1);
 
       setTimeout(() => {
         onFinish(newCorrectIdentifications * 10, {
@@ -153,9 +139,11 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
           RedProfile,
           GreenProfile,
           BlueProfile,
-          correctIdentifications: newCorrectIdentifications,
-          totalSelections: newTotalSelections,
-          rawColorStats: newColorStats,
+          rawData: {
+            total_selections: newTotalSelections,
+            correct_identifications: newCorrectIdentifications,
+            color_stats: newColorStats,
+          },
         });
       }, 500);
     } else {
@@ -171,22 +159,13 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
   const roundData = rounds[currentRound];
   const TargetIcon = roundData.targetShape.Icon;
 
-  const liveAR =
-    totalSelections === 0
-      ? "0.0"
-      : ((correctIdentifications / totalSelections) * 100).toFixed(1);
+  const liveAR = totalSelections === 0 ? '0.0' : ((correctIdentifications / totalSelections) * 100).toFixed(1);
   const liveRedPI =
-    colorStats.Red.prompts === 0
-      ? "0.0"
-      : ((colorStats.Red.hits / colorStats.Red.prompts) * 100).toFixed(1);
+    colorStats.Red.prompts === 0 ? '0.0' : ((colorStats.Red.hits / colorStats.Red.prompts) * 100).toFixed(1);
   const liveGreenPI =
-    colorStats.Green.prompts === 0
-      ? "0.0"
-      : ((colorStats.Green.hits / colorStats.Green.prompts) * 100).toFixed(1);
+    colorStats.Green.prompts === 0 ? '0.0' : ((colorStats.Green.hits / colorStats.Green.prompts) * 100).toFixed(1);
   const liveBluePI =
-    colorStats.Blue.prompts === 0
-      ? "0.0"
-      : ((colorStats.Blue.hits / colorStats.Blue.prompts) * 100).toFixed(1);
+    colorStats.Blue.prompts === 0 ? '0.0' : ((colorStats.Blue.hits / colorStats.Blue.prompts) * 100).toFixed(1);
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto relative h-[70vh]">
@@ -196,33 +175,26 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
             onClick={() => setShowDevMetrics(!showDevMetrics)}
             className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 opacity-30 hover:opacity-100 transition-opacity"
           >
-            {showDevMetrics ? "Hide Dev Metrics" : "Show Dev Metrics"}
+            {showDevMetrics ? 'Hide Dev Metrics' : 'Show Dev Metrics'}
           </button>
           {showDevMetrics && (
             <div className="bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-2xl shadow-xl border border-gray-700 w-56 text-left">
-              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">
-                Live Color Metrics
-              </div>
+              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">Live Color Metrics</div>
               <div className="mb-1 text-blue-300">Metric A: Accuracy</div>
               <div className="mb-1 ml-2">- Hits: {correctIdentifications}</div>
               <div className="mb-1 ml-2">- Taps: {totalSelections}</div>
               <div className="mb-2">
                 AR: <span className="text-white font-bold">{liveAR}%</span>
               </div>
-              <div className="pt-2 border-t border-gray-700 text-blue-300 mb-1">
-                Metric B: RGB Success
-              </div>
+              <div className="pt-2 border-t border-gray-700 text-blue-300 mb-1">Metric B: RGB Success</div>
               <div className="text-red-400">
-                Red: {liveRedPI}% ({colorStats.Red.hits}/
-                {colorStats.Red.prompts})
+                Red: {liveRedPI}% ({colorStats.Red.hits}/{colorStats.Red.prompts})
               </div>
               <div className="text-green-400">
-                Green: {liveGreenPI}% ({colorStats.Green.hits}/
-                {colorStats.Green.prompts})
+                Green: {liveGreenPI}% ({colorStats.Green.hits}/{colorStats.Green.prompts})
               </div>
               <div className="text-blue-400">
-                Blue: {liveBluePI}% ({colorStats.Blue.hits}/
-                {colorStats.Blue.prompts})
+                Blue: {liveBluePI}% ({colorStats.Blue.hits}/{colorStats.Blue.prompts})
               </div>
             </div>
           )}
@@ -230,9 +202,7 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
       )}
 
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-gray-800">
-          Find the hidden shape!
-        </h2>
+        <h2 className="text-2xl font-black text-gray-800">Find the hidden shape!</h2>
         <p className="text-gray-500 font-bold text-sm">
           Round {currentRound + 1} of {rounds.length}
         </p>
@@ -243,7 +213,7 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
         style={{ backgroundColor: roundData.variant.bg }}
       >
         <TargetIcon
-          size={difficulty === "hard" ? 90 : 120}
+          size={difficulty === 'hard' ? 90 : 120}
           style={{
             color: roundData.variant.fg,
             opacity: roundData.diff === 2 ? 0.8 : 1,
@@ -254,13 +224,8 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
         <div
           className="absolute inset-0 pointer-events-none z-10 transition-all duration-500 transform-gpu"
           style={{
-            backgroundImage: `radial-gradient(${difficulty === "hard" ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)"} 4px, transparent 4px)`,
-            backgroundSize:
-              difficulty === "easy"
-                ? "30px 30px"
-                : difficulty === "hard"
-                  ? "12px 12px"
-                  : "16px 16px",
+            backgroundImage: `radial-gradient(${difficulty === 'hard' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)'} 4px, transparent 4px)`,
+            backgroundSize: difficulty === 'easy' ? '30px 30px' : difficulty === 'hard' ? '12px 12px' : '16px 16px',
           }}
         ></div>
       </div>
@@ -274,10 +239,7 @@ const ColorGame = ({ onFinish, difficulty = "medium" }) => {
               onPointerDown={() => handleOptionClick(opt.id)}
               className="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-gray-200 hover:-translate-y-1 active:translate-y-0 active:border-b-0 transition-transform transform-gpu will-change-transform flex justify-center items-center select-none"
             >
-              <OptionIcon
-                size={40}
-                className="text-gray-400 pointer-events-none"
-              />
+              <OptionIcon size={40} className="text-gray-400 pointer-events-none" />
             </button>
           );
         })}

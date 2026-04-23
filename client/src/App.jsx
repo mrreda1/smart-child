@@ -26,6 +26,10 @@ import { NotFoundPage } from './views/NotFoundPage';
 import { ParentProfile } from './views/ParentProfile';
 import { ParentDashboardLayout } from './layouts/ParentDashboardLayout';
 import CoparentActionPage from './views/CoparentActionPage';
+import { ProtecteRoute } from './components/auth/ProtectRoute';
+import { BlockChildRoute } from './components/auth/BlockChildRoute';
+import { GuestRoute } from './components/auth/GuestRoute';
+import { JwtProvider } from './context/JwtProvider';
 
 const basename = import.meta.env.VITE_URL_BASENAME;
 
@@ -40,35 +44,51 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContextProvider>
-        <Router basename={basename || '/'}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
+      <JwtProvider>
+        <AppContextProvider>
+          <Router basename={basename || '/'}>
+            <Routes>
+              <Route element={<BlockChildRoute />}>
+                <Route path="/" element={<LandingPage />} />
+              </Route>
 
-            <Route path="/parent" element={<ParentDashboardLayout />}>
-              <Route path="dashboard" element={<ParentDashboard />} />
-              <Route path="profile" element={<ParentProfile />} />
-              <Route path="child/reports" element={<ReportsDashboard />} />
-            </Route>
-            <Route path="access-decision/:token" element={<CoparentActionPage />} />
-            <Route path="/child-dashboard" element={<ChildDashboard />} />
-            <Route path="/free-play" element={<FreePlayMenu />} />
-            <Route path="/game" element={<GamePlay />} />
-            {/* Auth Routes */}
-            <Route element={<AuthLayoutWrapper />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
-              <Route path="/reset-password/:token" element={<ResetPassword />} />
-            </Route>
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Router>
-        <ToastContainer position="top-right" autoClose={3000} />
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </AppContextProvider>
+              {/* Auth Routes */}
+              <Route element={<GuestRoute />}>
+                <Route element={<AuthLayoutWrapper />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
+                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+                </Route>
+              </Route>
+              {/* Parent Routes */}
+              <Route element={<ProtecteRoute allowedRole={'parent'} />}>
+                <Route path="/parent" element={<ParentDashboardLayout />}>
+                  <Route path="dashboard" element={<ParentDashboard />} />
+                  <Route path="profile" element={<ParentProfile />} />
+                  <Route path="child/reports" element={<ReportsDashboard />} />
+                </Route>
+                <Route path="access-decision/:token" element={<CoparentActionPage />} />
+              </Route>
+
+              {/* Child Routes */}
+              <Route element={<ProtecteRoute allowedRole={'child'} />}>
+                <Route path="/child">
+                  <Route path="dashboard" element={<ChildDashboard />} />
+                  <Route path="free-play" element={<FreePlayMenu />} />
+                  <Route path="game" element={<GamePlay />} />
+                </Route>
+              </Route>
+
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Router>
+          <ToastContainer position="top-right" autoClose={3000} />
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        </AppContextProvider>
+      </JwtProvider>
     </QueryClientProvider>
   );
 }

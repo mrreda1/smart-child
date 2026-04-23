@@ -32,10 +32,14 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    if (error.config?.silent_error) return Promise.reject(error);
-
     if (!error.response) {
       toast.error(error.message);
+      return Promise.reject(error);
+    }
+
+    if (error.config?.silent_error) {
+      if (error.config.showErrMsg) toast.error(error.response.data.message);
+
       return Promise.reject(error);
     }
 

@@ -1,10 +1,8 @@
-// ============================================================================
-// FILE: src/views/Games/components/DrawingGame.jsx
-
-import { playSound, SOUNDS } from "@/assets";
-import { IS_DEV } from "@/constants/config";
-import { Eraser, PenTool, Save, Trash2, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { playSound } from '@/utils/sound';
+import { SOUNDS } from '@/assets';
+import { IS_DEV } from '@/constants/config';
+import { Eraser, PenTool, Save, Trash2, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 // ============================================================================
 const DrawingGame = ({ onFinish }) => {
@@ -12,28 +10,20 @@ const DrawingGame = ({ onFinish }) => {
   const fileInputRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color, setColor] = useState("#1F2937");
+  const [color, setColor] = useState('#1F2937');
   const [sizeIndex, setSizeIndex] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
   const [strokeCount, setStrokeCount] = useState(0);
   const [showDevMetrics, setShowDevMetrics] = useState(false);
 
-  const COLORS = [
-    "#1F2937",
-    "#ef4444",
-    "#22c55e",
-    "#3b82f6",
-    "#eab308",
-    "#a855f7",
-    "#ec4899",
-  ];
+  const COLORS = ['#1F2937', '#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#ec4899'];
 
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = 800;
     canvas.height = 600;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ffffff";
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
@@ -59,24 +49,24 @@ const DrawingGame = ({ onFinish }) => {
     e.preventDefault();
     setIsDrawing(true);
     const { x, y } = getCoordinates(e);
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
     ctx.moveTo(x, y);
 
     const penSizes = [5, 12, 24];
     const eraserSizes = [20, 50, 100];
 
-    ctx.strokeStyle = isEraser ? "#ffffff" : color;
+    ctx.strokeStyle = isEraser ? '#ffffff' : color;
     ctx.lineWidth = isEraser ? eraserSizes[sizeIndex] : penSizes[sizeIndex];
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
   };
 
   const draw = (e) => {
     if (!isDrawing) return;
     e.preventDefault();
     const { x, y } = getCoordinates(e);
-    const ctx = canvasRef.current.getContext("2d");
+    const ctx = canvasRef.current.getContext('2d');
     ctx.lineTo(x, y);
     ctx.stroke();
   };
@@ -90,8 +80,8 @@ const DrawingGame = ({ onFinish }) => {
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ffffff";
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     setStrokeCount(0);
     playSound(SOUNDS.click);
@@ -105,13 +95,10 @@ const DrawingGame = ({ onFinish }) => {
         const img = new window.Image();
         img.onload = () => {
           const canvas = canvasRef.current;
-          const ctx = canvas.getContext("2d");
-          ctx.fillStyle = "#ffffff";
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          const scale = Math.min(
-            canvas.width / img.width,
-            canvas.height / img.height,
-          );
+          const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
           const x = canvas.width / 2 - (img.width / 2) * scale;
           const y = canvas.height / 2 - (img.height / 2) * scale;
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
@@ -126,20 +113,24 @@ const DrawingGame = ({ onFinish }) => {
 
   const handleDone = () => {
     playSound(SOUNDS.match);
-    const dataUrl = canvasRef.current.toDataURL("image/png");
-    onFinish(100, {
-      type: "drawing",
-      expression: [
-        "Happy 😊",
-        "Focused 🤔",
-        "Relaxed 😌",
-        "Excited 🤩",
-        "Nervous 😟",
-      ][Math.floor(Math.random() * 5)],
-      imageBase64: dataUrl,
-    });
-  };
 
+    if (!canvasRef.current) return;
+
+    canvasRef.current.toBlob((blob) => {
+      if (!blob) return;
+
+      const imageFile = new File([blob], 'drawing-test.png', { type: 'image/png' });
+
+      onFinish(100, {
+        type: 'drawing',
+        rawData: {
+          imageFile: imageFile,
+
+          imageBase64: canvasRef.current.toDataURL('image/png'),
+        },
+      });
+    }, 'image/png');
+  };
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto relative">
       {IS_DEV && (
@@ -148,17 +139,14 @@ const DrawingGame = ({ onFinish }) => {
             onClick={() => setShowDevMetrics(!showDevMetrics)}
             className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 opacity-30 hover:opacity-100 transition-opacity"
           >
-            {showDevMetrics ? "Hide Dev Metrics" : "Show Dev Metrics"}
+            {showDevMetrics ? 'Hide Dev Metrics' : 'Show Dev Metrics'}
           </button>
           {showDevMetrics && (
             <div className="bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-2xl shadow-xl border border-gray-700 w-56 text-left">
-              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">
-                Live Drawing Metrics
-              </div>
+              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">Live Drawing Metrics</div>
               <div className="mb-1 text-blue-300">Metric: Interactions</div>
               <div>
-                Total Strokes/Uploads:{" "}
-                <span className="text-white font-bold">{strokeCount}</span>
+                Total Strokes/Uploads: <span className="text-white font-bold">{strokeCount}</span>
               </div>
             </div>
           )}
@@ -169,7 +157,7 @@ const DrawingGame = ({ onFinish }) => {
         <canvas
           ref={canvasRef}
           className="w-full touch-none cursor-crosshair object-cover"
-          style={{ aspectRatio: "4/3" }}
+          style={{ aspectRatio: '4/3' }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
@@ -185,14 +173,14 @@ const DrawingGame = ({ onFinish }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setIsEraser(false)}
-              className={`p-3 rounded-xl transition-colors ${!isEraser ? "bg-yellow-100 text-yellow-600 shadow-sm" : "text-gray-500 hover:bg-gray-100"}`}
+              className={`p-3 rounded-xl transition-colors ${!isEraser ? 'bg-yellow-100 text-yellow-600 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
               title="Pen"
             >
               <PenTool size={24} />
             </button>
             <button
               onClick={() => setIsEraser(true)}
-              className={`p-3 rounded-xl transition-colors ${isEraser ? "bg-yellow-100 text-yellow-600 shadow-sm" : "text-gray-500 hover:bg-gray-100"}`}
+              className={`p-3 rounded-xl transition-colors ${isEraser ? 'bg-yellow-100 text-yellow-600 shadow-sm' : 'text-gray-500 hover:bg-gray-100'}`}
               title="Eraser"
             >
               <Eraser size={24} />
@@ -206,11 +194,11 @@ const DrawingGame = ({ onFinish }) => {
                 <button
                   key={idx}
                   onClick={() => setSizeIndex(idx)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${sizeIndex === idx ? "bg-white shadow-sm border border-gray-200" : "hover:bg-gray-200"}`}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${sizeIndex === idx ? 'bg-white shadow-sm border border-gray-200' : 'hover:bg-gray-200'}`}
                   title={`Size ${idx + 1}`}
                 >
                   <div
-                    className={`rounded-full ${isEraser ? "border-2 border-gray-400 bg-white" : "bg-gray-800"}`}
+                    className={`rounded-full ${isEraser ? 'border-2 border-gray-400 bg-white' : 'bg-gray-800'}`}
                     style={{ width: displaySize, height: displaySize }}
                   ></div>
                 </button>
@@ -227,7 +215,7 @@ const DrawingGame = ({ onFinish }) => {
                 setColor(c);
                 setIsEraser(false);
               }}
-              className={`w-10 h-10 rounded-full border-2 transition-all ${color === c && !isEraser ? "scale-110 shadow-md border-gray-400" : "border-transparent hover:scale-105"}`}
+              className={`w-10 h-10 rounded-full border-2 transition-all ${color === c && !isEraser ? 'scale-110 shadow-md border-gray-400' : 'border-transparent hover:scale-105'}`}
               style={{ backgroundColor: c }}
               title="Color"
             />
@@ -244,13 +232,7 @@ const DrawingGame = ({ onFinish }) => {
           >
             <Trash2 size={24} />
           </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="hidden"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
           <button
             onClick={() => fileInputRef.current?.click()}
             className="bg-gray-100 text-gray-600 p-4 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-500 transition-colors"
