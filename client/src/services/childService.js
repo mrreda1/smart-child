@@ -2,6 +2,12 @@ import apiClient from '@/api/apiClient';
 
 const childStartEndpoint = 'child';
 
+const getCurrentChild = async () => {
+  const res = await apiClient.get(`${childStartEndpoint}/me`);
+
+  return res.data.child;
+};
+
 const getChildren = async () => {
   const { data } = await apiClient.get(childStartEndpoint);
 
@@ -24,4 +30,4 @@ const deleteChild = async (id) => {
   await apiClient.delete(`${childStartEndpoint}/${id}`);
 };
 
-export { getChildren, createChild, updateChild, deleteChild };
+export { getCurrentChild, getChildren, createChild, updateChild, deleteChild };

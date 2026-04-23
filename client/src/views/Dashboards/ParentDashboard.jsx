@@ -1,5 +1,4 @@
 import { THEME } from '@/constants/config';
-import { useAppContext } from '@/context/AppContext';
 import { LinkIcon, Plus, Smile } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

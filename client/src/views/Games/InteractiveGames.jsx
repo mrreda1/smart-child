@@ -14,7 +14,7 @@ const FreePlayMenu = () => {
       <div className="max-w-5xl mx-auto p-6 py-10 flex flex-col h-full">
         <header className="flex justify-between items-center mb-10">
           <button
-            onClick={() => navigate('/child-dashboard')}
+            onClick={() => navigate('/child/dashboard')}
             className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
           >
             <ArrowLeft size={18} /> Back
@@ -46,7 +46,7 @@ const FreePlayMenu = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 animate-in slide-in-from-bottom duration-500">
           <button
             onClick={() =>
-              navigate('/game', {
+              navigate('/child/game', {
                 state: { mode: 'free', gameId: 'memory', difficulty },
               })
             }
@@ -61,7 +61,7 @@ const FreePlayMenu = () => {
 
           <button
             onClick={() =>
-              navigate('/game', {
+              navigate('/child/game', {
                 state: { mode: 'free', gameId: 'reaction', difficulty },
               })
             }
@@ -76,7 +76,7 @@ const FreePlayMenu = () => {
 
           <button
             onClick={() =>
-              navigate('/game', {
+              navigate('/child/game', {
                 state: { mode: 'free', gameId: 'color', difficulty },
               })
             }
@@ -91,7 +91,7 @@ const FreePlayMenu = () => {
 
           <button
             onClick={() =>
-              navigate('/game', {
+              navigate('/child/game', {
                 state: { mode: 'free', gameId: 'hearing', difficulty },
               })
             }
@@ -106,7 +106,7 @@ const FreePlayMenu = () => {
 
           <button
             onClick={() =>
-              navigate('/game', {
+              navigate('/child/game', {
                 state: { mode: 'free', gameId: 'drawing', difficulty },
               })
             }
