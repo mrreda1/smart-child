@@ -1,10 +1,12 @@
-const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
+const jwt = require('jsonwebtoken');
+
 const Parent = require('../models/parent');
-const catchAsync = require('./../utils/catchAsync');
+const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
 const mailer = require('../utils/email');
+const authService = require('../services/AuthService');
 
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await Parent.create({
@@ -14,37 +16,35 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  await createSendEmailVerificationToken(newUser);
+  await authService.sendEmailVerification(newUser);
 
   newUser.emailVerificationToken = undefined;
 
-  createSendToken(newUser, StatusCodes.CREATED, res);
+  authService.sendAuthToken(newUser, StatusCodes.CREATED, res);
 });
 
-exports.login = async (req, res, next) => {
+exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!(email && password)) {
     return next(new AppError('Please provide email and password', StatusCodes.BAD_REQUEST));
   }
 
-  const user = await Parent.findOne({ email: email }).select('+password');
-  // const passwordIsCorrect = await bcrypt.compare(password, user.password);
+  const user = await Parent.findOne({ email }).select('+password');
 
   if (!(user && (await user.passwordMatch(password)))) {
     return next(new AppError('Email or password is incorrect!', StatusCodes.BAD_REQUEST));
   }
 
-  createSendToken(user, StatusCodes.OK, res);
-};
+  authService.sendAuthToken(user, StatusCodes.OK, res);
+});
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const user = await Parent.findOne({ email: req.body.email });
+
+  // Always respond with 200 to avoid user enumeration
   if (!user) {
-    return res.status(StatusCodes.OK).json({
-      status: 'success',
-      message: 'token sent to email.',
-    });
+    return res.status(StatusCodes.OK).json({ status: 'success', message: 'token sent to email.' });
   }
 
   const expireTimeInMinutes = 60;
@@ -53,10 +53,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   await mailer.sendPasswordResetTokenEmail(user, resetToken, expireTimeInMinutes);
 
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    message: 'token sent to email.',
-  });
+  res.status(StatusCodes.OK).json({ status: 'success', message: 'token sent to email.' });
 });
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
@@ -77,7 +74,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpires = undefined;
   await user.save();
 
-  createSendToken(user, StatusCodes.OK, res);
+  authService.sendAuthToken(user, StatusCodes.OK, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -88,27 +85,25 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     throw new AppError('Current password is incorrect', StatusCodes.BAD_REQUEST);
   }
 
-  if (!(newPassword === newPasswordConfirm)) {
+  if (newPassword !== newPasswordConfirm) {
     throw new AppError('New password does not match!', StatusCodes.BAD_REQUEST);
   }
 
-  if (currentPassword === newPassword)
+  if (currentPassword === newPassword) {
     throw new AppError('New password is same as old password', StatusCodes.BAD_REQUEST);
+  }
 
   user.password = newPassword;
   user.passwordConfirm = newPasswordConfirm;
-
   await user.save();
 
-  createSendToken(user, StatusCodes.OK, res);
+  authService.sendAuthToken(user, StatusCodes.OK, res);
 });
 
 exports.confirmEmail = catchAsync(async (req, res, next) => {
   const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
-  const user = await Parent.findOne({
-    emailVerificationToken: hashedToken,
-  });
+  const user = await Parent.findOne({ emailVerificationToken: hashedToken });
 
   if (!user) {
     return next(new AppError('Token is invalid!', StatusCodes.BAD_REQUEST));
@@ -118,79 +113,44 @@ exports.confirmEmail = catchAsync(async (req, res, next) => {
   user.verifiedEmail = true;
   await user.save();
 
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    message: 'email verified!',
-  });
+  res.status(StatusCodes.OK).json({ status: 'success', message: 'email verified!' });
 });
 
 exports.verifyEmail = catchAsync(async (req, res, next) => {
-  const user = await Parent.findOne({
-    email: req.body.email,
-  });
+  const user = await Parent.findOne({ email: req.body.email });
 
+  // Always respond with 200 to avoid user enumeration
   if (!user) {
-    return res.status(StatusCodes.OK).json({
-      status: 'success',
-      message: 'token sent to email.',
-    });
+    return res.status(StatusCodes.OK).json({ status: 'success', message: 'token sent to email.' });
   }
 
-  if (user.verifiedEmail) return next(new AppError('Email is already verified.', StatusCodes.CONFLICT));
+  if (user.verifiedEmail) {
+    return next(new AppError('Email is already verified.', StatusCodes.CONFLICT));
+  }
 
-  await createSendEmailVerificationToken(user);
+  await authService.sendEmailVerification(user);
 
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    message: 'token sent to email.',
-  });
+  res.status(StatusCodes.OK).json({ status: 'success', message: 'token sent to email.' });
 });
 
 exports.switchToChild = catchAsync(async (req, res, next) => {
-  const { child_id: childId, parent_id } = req.parentChildLink;
+  const { child_id: childId } = req.parentChildLink;
   const parent = req.user;
 
   const token = jwt.sign(
     { childId, parent: { id: parent.id, name: parent.name }, role: 'child' },
     process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_LIFETIME,
-    },
+    { expiresIn: process.env.JWT_LIFETIME },
   );
 
-  res.json({
-    status: 'success',
-    token,
-  });
+  res.json({ status: 'success', token });
 });
 
 exports.switchToParent = catchAsync(async (req, res, next) => {
   const { parent } = req;
 
   const isPassMatch = await parent.passwordMatch(req.body.password);
-
   if (!isPassMatch) throw new AppError('Wrong password', StatusCodes.UNAUTHORIZED);
 
-  createSendToken(parent, StatusCodes.OK, res);
+  authService.sendAuthToken(parent, StatusCodes.OK, res);
 });
-
-const createSendToken = (parent, statusCode, res) => {
-  const token = parent.signToken();
-
-  parent.password = undefined;
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: {
-      parent,
-    },
-  });
-};
-
-const createSendEmailVerificationToken = async (parent) => {
-  const emailVerificationToken = parent.createEmailVerificationToken();
-
-  await parent.save({ validateBeforeSave: false });
-
-  mailer.sendEmailVerificationToken(parent, emailVerificationToken);
-};
