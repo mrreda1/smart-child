@@ -4,7 +4,7 @@ const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');
 const factory = require('./handlerFactory');
 const { StatusCodes } = require('http-status-codes');
-const fs = require('fs/promises');
+const fileService = require('../services/FileService');
 
 exports.getUser = factory.getOne(Parent);
 
@@ -20,11 +20,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   const currentUser = await Parent.findById(req.user.id);
 
   if (req.file) {
-    if (currentUser.photo && currentUser.photo !== 'default-user.jpg') {
-      const oldPath = `${__dirname}/../uploads/profiles/${currentUser.photo}`;
-
-      await fs.unlink(oldPath); // Remove Old Photo
-    }
+    await fileService.deleteProfilePhoto(currentUser.photo);
 
     req.body.photo = req.file.filename;
   }
@@ -39,16 +35,11 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     status: 'success',
-    data: {
-      parent: updatedUser,
-    },
+    data: { parent: updatedUser },
   });
 });
 
 exports.deleteMyAccount = catchAsync(async (req, res, next) => {
   await Parent.findByIdAndUpdate(req.user.id, { active: false });
-  res.status(StatusCodes.NO_CONTENT).json({
-    status: 'success',
-    data: null,
-  });
+  res.status(StatusCodes.NO_CONTENT).json({ status: 'success', data: null });
 });
