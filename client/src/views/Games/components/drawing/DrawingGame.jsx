@@ -1,11 +1,9 @@
-import { playSound } from '@/utils/sound';
 import { SOUNDS } from '@/assets';
-import { IS_DEV } from '@/constants/config';
+import { playSound } from '@/utils/sound';
 import { Eraser, PenTool, Save, Trash2, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-// ============================================================================
-const DrawingGame = ({ onFinish }) => {
+export const DrawingGame = ({ onFinish }) => {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -14,7 +12,6 @@ const DrawingGame = ({ onFinish }) => {
   const [sizeIndex, setSizeIndex] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
   const [strokeCount, setStrokeCount] = useState(0);
-  const [showDevMetrics, setShowDevMetrics] = useState(false);
 
   const COLORS = ['#1F2937', '#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#ec4899'];
 
@@ -34,15 +31,9 @@ const DrawingGame = ({ onFinish }) => {
     const scaleY = canvas.height / rect.height;
 
     if (e.touches && e.touches.length > 0) {
-      return {
-        x: (e.touches[0].clientX - rect.left) * scaleX,
-        y: (e.touches[0].clientY - rect.top) * scaleY,
-      };
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
     }
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-    };
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
   };
 
   const startDrawing = (e) => {
@@ -113,46 +104,19 @@ const DrawingGame = ({ onFinish }) => {
 
   const handleDone = () => {
     playSound(SOUNDS.match);
-
     if (!canvasRef.current) return;
-
     canvasRef.current.toBlob((blob) => {
       if (!blob) return;
-
       const imageFile = new File([blob], 'drawing-test.png', { type: 'image/png' });
-
       onFinish(100, {
         type: 'drawing',
-        rawData: {
-          imageFile: imageFile,
-
-          imageBase64: canvasRef.current.toDataURL('image/png'),
-        },
+        rawData: { imageFile: imageFile, imageBase64: canvasRef.current.toDataURL('image/png') },
       });
     }, 'image/png');
   };
-  return (
-    <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto relative">
-      {IS_DEV && (
-        <div className="absolute top-[-40px] right-0 z-50 flex flex-col items-end transform translate-x-4 md:translate-x-12">
-          <button
-            onClick={() => setShowDevMetrics(!showDevMetrics)}
-            className="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 opacity-30 hover:opacity-100 transition-opacity"
-          >
-            {showDevMetrics ? 'Hide Dev Metrics' : 'Show Dev Metrics'}
-          </button>
-          {showDevMetrics && (
-            <div className="bg-gray-900 text-green-400 font-mono text-xs p-4 rounded-2xl shadow-xl border border-gray-700 w-56 text-left">
-              <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">Live Drawing Metrics</div>
-              <div className="mb-1 text-blue-300">Metric: Interactions</div>
-              <div>
-                Total Strokes/Uploads: <span className="text-white font-bold">{strokeCount}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
+  return (
+    <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto relative select-none [-webkit-tap-highlight-color:transparent]">
       <div className="w-full bg-white rounded-[2.5rem] shadow-sm border-4 border-gray-200 overflow-hidden mb-6 relative">
         <canvas
           ref={canvasRef}
@@ -167,7 +131,6 @@ const DrawingGame = ({ onFinish }) => {
           onTouchEnd={stopDrawing}
         />
       </div>
-
       <div className="w-full bg-white p-4 md:px-8 md:py-5 rounded-[2rem] shadow-sm border border-gray-200 flex flex-col md:flex-row gap-6 md:gap-8 justify-between items-center mb-8">
         <div className="flex justify-between items-center w-full md:w-auto gap-6 md:border-r md:border-gray-200 md:pr-8">
           <div className="flex gap-2">
@@ -186,7 +149,6 @@ const DrawingGame = ({ onFinish }) => {
               <Eraser size={24} />
             </button>
           </div>
-
           <div className="flex gap-2 items-center bg-gray-50 p-2 rounded-2xl">
             {[0, 1, 2].map((idx) => {
               const displaySize = [8, 14, 22][idx];
@@ -206,7 +168,6 @@ const DrawingGame = ({ onFinish }) => {
             })}
           </div>
         </div>
-
         <div className="flex flex-wrap justify-center gap-3 md:gap-4 w-full md:w-auto">
           {COLORS.map((c) => (
             <button
@@ -222,7 +183,6 @@ const DrawingGame = ({ onFinish }) => {
           ))}
         </div>
       </div>
-
       <div className="flex gap-4 w-full justify-between items-center">
         <div className="flex gap-2">
           <button
@@ -251,5 +211,3 @@ const DrawingGame = ({ onFinish }) => {
     </div>
   );
 };
-
-export default DrawingGame;

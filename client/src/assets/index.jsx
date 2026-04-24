@@ -27,6 +27,7 @@ import trainSound from '@/assets/sounds/train.mp3';
 import frogSound from '@/assets/sounds/frog.mp3';
 import wrongSound from '@/assets/sounds/wrong.mp3';
 import failSound from '@/assets/sounds/fail.mp3';
+import cowntdown from '@/assets/sounds/cowntdown.mp3';
 
 // Default Child Icons
 import blackBoyIcon from '@/assets/images/childIcons/blackBoy.png';
@@ -36,6 +37,13 @@ import boyBrownHair from '@/assets/images/childIcons/boyBrownHair.png';
 import boyYellowHair from '@/assets/images/childIcons/boyYellowHair.png';
 import girlBlackHair from '@/assets/images/childIcons/girlBlackHair.png';
 import girlYellowHair from '@/assets/images/childIcons/girlYellowHair.png';
+
+// Puzzle Images
+import mickyMouse from '@/assets/images/mickeyMouse.png';
+import gumball from '@/assets/images/gumball.png';
+import wennyBear from '@/assets/images/wennyBear.png';
+import tomJerry from '@/assets/images/tomJerry.png';
+import lionTheKing from '@/assets/images/lionTheKing.png';
 
 const childAvatars = [
   boyYellowHair,
@@ -70,6 +78,7 @@ const SOUNDS = {
   wrong: wrongSound,
   win: winSound,
   fail: failSound,
+  cowntdown,
 };
 
 const HEARING_ITEMS = [
@@ -114,5 +123,6 @@ const HEARING_ITEMS = [
     sound: frogSound,
   },
 ];
+const PUZZLE_IMAGES = [mickyMouse, gumball, wennyBear, tomJerry, lionTheKing];
 
-export { ASSETS, SOUNDS, HEARING_ITEMS };
+export { ASSETS, SOUNDS, HEARING_ITEMS, PUZZLE_IMAGES };
