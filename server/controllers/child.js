@@ -22,7 +22,10 @@ const getChildren = handlerFactory.getOneWithDeepPopulate(
   },
 );
 
-const updateChild = handlerFactory.updateOne(ChildModel, false);
+const updateChild = handlerFactory.updateOne(ChildModel, {
+  sendResponse: false,
+  allowedFields: ['name', 'age', 'gender', 'photo'],
+});
 
 const getCurrentChild = catchAsync((req, res, next) => {
   res.json({
