@@ -68,10 +68,11 @@ childSchema.set('toJSON', {
   },
 });
 
-childSchema.plugin(cascadeDeletePlugin, {
-  modelName: 'ParentChild',
-  foreignKey: 'child_id',
-});
+childSchema.plugin(cascadeDeletePlugin, [
+  { modelName: 'ParentChild', foreignKey: 'child_id' },
+  { modelName: 'OverallReport', foreignKey: 'child_id' },
+  { modelName: 'Assessment', foreignKey: 'child_id' },
+]);
 
 const Child = mongoose.model('Child', childSchema);
 

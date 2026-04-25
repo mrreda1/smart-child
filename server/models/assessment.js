@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const ChildModel = require('./child');
 
+const cascadeDeletePlugin = require('./plugins/cascadeDeletePlugin');
+
 const assessmentSchema = new mongoose.Schema(
   {
     child_id: {
@@ -22,5 +24,10 @@ const assessmentSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+assessmentSchema.plugin(cascadeDeletePlugin, [
+  { modelName: 'DailyReport', foreignKey: 'assessment_id' },
+  { modelName: 'AssessmentTest', foreignKey: 'assessment_id' },
+]);
 
 module.exports = mongoose.model('Assessment', assessmentSchema);
