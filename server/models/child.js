@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
+const parentChildModel = require('./parentChild');
 const { customAlphabet } = require('nanoid');
 const cascadeDeletePlugin = require('./plugins/cascadeDeletePlugin');
-const { Schema } = mongoose;
 
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const nanoid = customAlphabet(alphabet, 8);

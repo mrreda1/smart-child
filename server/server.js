@@ -1,8 +1,9 @@
 const dotenv = require('dotenv');
 
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: `${__dirname}/config.env` });
 
-const mongoose = require('mongoose');
+const connectDB = require('./models/db/connect');
+
 const app = require(`${__dirname}/app`);
 
 process.on('uncaughtException', (err) => {
@@ -13,14 +14,8 @@ process.on('uncaughtException', (err) => {
 });
 
 const port = process.env.PORT;
-const DB = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD,
-);
 
-mongoose.connect(DB, {}).then(() => {
-  console.log('connected to database...');
-});
+connectDB();
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);

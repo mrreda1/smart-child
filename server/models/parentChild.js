@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+const ParentModel = require('./parent');
+const ChildModel = require('./child');
+
 const parentChildSchema = new Schema({
   parent_id: {
     type: Schema.Types.ObjectId,

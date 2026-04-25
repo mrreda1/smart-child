@@ -1,6 +1,9 @@
 const handlerFactory = require('./handlerFactory');
 const ParentModel = require('../models/parent');
 const ChildModel = require('../models/child');
+const TestModel = require('../models/test');
+const AssessmentModel = require('../models/assessment');
+const AssessmentTestModel = require('../models/assessmentTest');
 const ParentChild = require('../models/parentChild');
 const catchAsync = require('../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes');
@@ -44,6 +47,23 @@ const createChild = catchAsync(async (req, res, next) => {
     is_owner: true,
     status: 'accepted',
   });
+
+  const assessment = await AssessmentModel.create({
+    child_id: newChild._id,
+    status: 'in-progress',
+    active_in: Date.now(),
+  });
+
+  const allTests = await TestModel.find({});
+
+  const assessmentTests = allTests.map((test) => {
+    return {
+      assessment_id: assessment._id,
+      test_id: test._id,
+    };
+  });
+
+  await AssessmentTestModel.insertMany(assessmentTests);
 
   res.status(StatusCodes.CREATED).json({
     status: 'success',

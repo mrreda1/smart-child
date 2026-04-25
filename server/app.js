@@ -5,6 +5,8 @@ const authRouter = require(`${__dirname}/routes/auth`);
 const userRouter = require(`${__dirname}/routes/user`);
 const childRouter = require(`${__dirname}/routes/child`);
 const coparentRouter = require(`${__dirname}/routes/coparent`);
+const testRouter = require(`${__dirname}/routes/test`);
+const assessmentRouter = require(`${__dirname}/routes/assessment`);
 
 const setupMiddlewares = require(`${__dirname}/utils/middlewares`);
 
@@ -26,12 +28,13 @@ app.use(`/api/v${APIVersion}/child`, childRouter);
 
 app.use(`/api/v${APIVersion}/coparent`, coparentRouter);
 
+app.use(`/api/v${APIVersion}/test`, testRouter);
+
+app.use(`/api/v${APIVersion}/assessment`, assessmentRouter);
+
 // Error handler for invalid routes
 app.all('*', (req, res, next) => {
-  const err = new AppError(
-    `can't find ${req.originalUrl} on this server!`,
-    404,
-  );
+  const err = new AppError(`can't find ${req.originalUrl} on this server!`, 404);
 
   next(err);
 });

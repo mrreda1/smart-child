@@ -1,4 +1,3 @@
-// name, email, photo, password, passwordConfirm
 const crypto = require('node:crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
@@ -7,6 +6,8 @@ const jwt = require('jsonwebtoken');
 
 const passwordMinLength = 8;
 const passwordMaxLength = 30;
+
+const parentChildModel = require('./parentChild');
 
 const parentSchema = new mongoose.Schema({
   name: {
