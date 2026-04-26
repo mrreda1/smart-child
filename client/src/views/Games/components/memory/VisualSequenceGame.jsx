@@ -1,13 +1,16 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.visual_sequence[difficulty] || {};
-  const seqLength = config?.seqLength || 4;
-  const totalRounds = config?.totalRounds || 3;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const visualSeqTest = testConfigs?.find((test) => test.name === 'visual Sequence');
+  const testDescription = visualSeqTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const seqLength = testDescription?.config?.seqLength || 4;
+  const totalRounds = testDescription?.config?.totalRounds || 3;
 
   const ANIMALS = ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐸', '🐼', '🐯', '🦁', '🐮', '🐷'];
 
@@ -25,7 +28,7 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
   const [hasFinished, setHasFinished] = useState(false);
 
   useEffect(() => {
-    if (round >= totalRounds) return;
+    if (isLoading || round >= totalRounds) return;
 
     const available = [...ANIMALS].sort(() => Math.random() - 0.5);
     const newSeq = available.slice(0, seqLength);
@@ -49,10 +52,10 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [round, seqLength, totalRounds]);
+  }, [round, seqLength, totalRounds, isLoading]);
 
   useEffect(() => {
-    if (round >= totalRounds && !hasFinished) {
+    if (round >= totalRounds && !hasFinished && !isLoading) {
       setHasFinished(true);
       const ar = totalSelections === 0 ? '0.0' : ((correctRecalls / totalSelections) * 100).toFixed(1);
       const arl = totalSelections === 0 ? '0.00' : (sumLatency / totalSelections / 1000).toFixed(2);
@@ -66,7 +69,7 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
         },
       });
     }
-  }, [round, totalRounds, hasFinished, totalSelections, correctRecalls, sumLatency, onFinish]);
+  }, [round, totalRounds, hasFinished, totalSelections, correctRecalls, sumLatency, onFinish, isLoading]);
 
   const handleOptionClick = (animal) => {
     if (phase !== 'recall') return;
@@ -116,6 +119,13 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
     setPlayerSequence(newPlayerSeq);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto h-[60vh] relative select-none [-webkit-tap-highlight-color:transparent]">
       <div className="text-center mb-10">

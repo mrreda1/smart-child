@@ -1,20 +1,24 @@
 import GamifiedLoader from '@/components/common/GamifiedLoader';
 import InputField from '@/components/common/InputField';
 import { THEME } from '@/constants/config';
-import { useAppContext } from '@/context/AppContext';
 import { useJwt } from '@/context/JwtProvider';
 import { useSwitchToParent } from '@/hooks/auth';
 import { useGetCurrentChild } from '@/hooks/child';
-import { Loader2, Lock, Puzzle, Smile, Star, X } from 'lucide-react';
+import { Lock, Puzzle, Smile, Star, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useGetTestsConfig } from '@/hooks/test';
 
 const ChildDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { globalStars, setTestConfigs } = useAppContext();
+  const { decodedJwt } = useJwt();
+  const [isTestLocked, setIsTestLocked] = useState(true);
+  const [countdown, setCountdown] = useState('');
+  const [showExitModal, setShowExitModal] = useState(false);
+  const switchToParentMutation = useSwitchToParent({ silent_error: true, showErrMsg: true });
 
   const {
     handleSubmit,
@@ -22,38 +26,11 @@ const ChildDashboard = () => {
     formState: { errors },
   } = useForm();
 
-  const { decodedJwt } = useJwt();
-
-  const [isTestLocked, setIsTestLocked] = useState(true);
-  const [isFetchingGlobalConfig, setIsFetchingGlobalConfig] = useState(false);
-
-  const [countdown, setCountdown] = useState('');
-  const [showExitModal, setShowExitModal] = useState(false);
   const childQuery = useGetCurrentChild(location.state?.profile);
-  const switchToParentMutation = useSwitchToParent({ silent_error: true, showErrMsg: true });
 
   const childProfile = childQuery.data;
 
-  useEffect(() => {
-    const fetchGlobalConfig = async () => {
-      try {
-        // ======================================================================
-        // 🚀 API CALL LOCATION (GLOBAL TEST CONFIGS)
-        // Fetch ALL configurations for ALL difficulties here so Free Play has data.
-        // Example:
-        // const response = await fetch('/api/tests/configs');
-        // const allConfigs = await response.json();
-        // setTestConfigs(allConfigs);
-        // ======================================================================
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error('Failed to fetch global test configurations:', error);
-      } finally {
-        setIsFetchingGlobalConfig(false);
-      }
-    };
-    fetchGlobalConfig();
-  }, [setTestConfigs]);
+  const testConfigQuery = useGetTestsConfig();
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -77,23 +54,9 @@ const ChildDashboard = () => {
     switchToParentMutation.mutate(data);
   };
 
-  if (isFetchingGlobalConfig) {
-    return (
-      <div
-        className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col items-center justify-center p-6 relative select-none [-webkit-tap-highlight-color:transparent]`}
-      >
-        <div className="bg-white p-10 rounded-[3rem] shadow-xl text-center max-w-sm w-full animate-pulse flex flex-col items-center">
-          <Loader2 className="w-16 h-16 text-yellow-400 animate-spin mb-6" />
-          <h2 className="text-2xl font-black text-gray-800">Loading Dashboard...</h2>
-          <p className="text-gray-500 font-bold text-sm mt-2">Getting things ready</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`flex flex-column min-h-screen ${THEME.bgBeige} font-sans relative overflow-hidden`}>
-      {!childQuery.isSuccess ? (
+      {!(childQuery.isSuccess && testConfigQuery.isSuccess) ? (
         <GamifiedLoader />
       ) : (
         <div className="relative flex-1 z-10 max-w-4xl mx-auto p-6 py-10 flex flex-col min-h-screen">

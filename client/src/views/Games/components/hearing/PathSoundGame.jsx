@@ -1,16 +1,20 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound, playTone } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.path_sound[difficulty] || {};
-  const seqLength = config?.seqLength || 4;
-  const totalRounds = config?.totalRounds || 3;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
 
+  const pathSoundTest = testConfigs?.find((test) => test.name === 'Path Sound');
+  const testDescription = pathSoundTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const seqLength = testDescription?.config?.seqLength || 4;
+  const totalRounds = testDescription?.config?.totalRounds || 3;
+
+  const [hasStarted, setHasStarted] = useState(false);
   const [round, setRound] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [sequence, setSequence] = useState([]);
   const [playerStep, setPlayerStep] = useState(0);
   const [activePad, setActivePad] = useState(null);
@@ -29,9 +33,9 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
     { id: 3, color: 'bg-yellow-400', freq: 523.25 },
   ];
 
-  // SEPARATED EFFECT: Level Setup Generator
   useEffect(() => {
-    if (round >= totalRounds) return;
+    // Prevent game from running until data loads AND user clicks start
+    if (isLoading || round >= totalRounds || !hasStarted) return;
 
     const newSeq = Array.from({ length: seqLength }).map(() => Math.floor(Math.random() * 4));
     setSequence(newSeq);
@@ -53,12 +57,12 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
         setAudioEndTime(Date.now());
       }
     }, 1000);
-    return () => clearInterval(interval);
-  }, [round, seqLength, totalRounds]);
 
-  // SEPARATED EFFECT: Game Completion Logic
+    return () => clearInterval(interval);
+  }, [round, seqLength, totalRounds, isLoading, hasStarted]);
+
   useEffect(() => {
-    if (round >= totalRounds && !hasFinished) {
+    if (round >= totalRounds && !hasFinished && !isLoading && hasStarted) {
       setHasFinished(true);
       const isr = totalSoundsPlayed === 0 ? '0.0' : ((correctIdentifications / totalSoundsPlayed) * 100).toFixed(1);
       const aarl = totalSoundsPlayed === 0 ? '0.00' : (sumLatency / totalSoundsPlayed / 1000).toFixed(2);
@@ -72,10 +76,20 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
         },
       });
     }
-  }, [round, totalRounds, hasFinished, totalSoundsPlayed, correctIdentifications, sumLatency, onFinish]);
+  }, [
+    round,
+    totalRounds,
+    hasFinished,
+    totalSoundsPlayed,
+    correctIdentifications,
+    sumLatency,
+    onFinish,
+    isLoading,
+    hasStarted,
+  ]);
 
   const handlePadClick = (id) => {
-    if (isPlaying) return;
+    if (isPlaying || !hasStarted) return;
 
     const now = Date.now();
     if (audioEndTime > 0) {
@@ -96,12 +110,10 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
       setCorrectIdentifications((prev) => prev + 1);
     } else {
       setRoundErrors((prev) => prev + 1);
-      // Sound: wrong (Immediate feedback for a mistake)
     }
 
     if (playerStep + 1 === sequence.length) {
       if (isCorrect && roundErrors === 0) {
-        // Sound: match (Win sound for a completely perfect path!)
         playSound(SOUNDS.match);
       }
       setTimeout(() => setRound((r) => r + 1), 1000);
@@ -111,8 +123,27 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto h-[60vh] select-none [-webkit-tap-highlight-color:transparent]">
+    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto h-[60vh] relative select-none [-webkit-tap-highlight-color:transparent]">
+      {!hasStarted && !hasFinished && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 rounded-[2rem]">
+          <button
+            onClick={() => setHasStarted(true)}
+            className="bg-yellow-400 text-black font-black text-2xl px-10 py-5 rounded-full shadow-sm animate-bounce select-none [-webkit-tap-highlight-color:transparent]"
+          >
+            START!
+          </button>
+        </div>
+      )}
+
       <div className="text-center mb-10">
         <h2 className="text-2xl font-black text-gray-800">Follow the Sound Path!</h2>
         <p className="text-gray-500 font-bold mt-1">
@@ -124,7 +155,7 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
           <button
             key={pad.id}
             onClick={() => handlePadClick(pad.id)}
-            disabled={isPlaying}
+            disabled={isPlaying || !hasStarted}
             className={`aspect-square rounded-[2rem] shadow-sm border-b-8 border-gray-200 transition-all duration-200 select-none [-webkit-tap-highlight-color:transparent] ${pad.color} ${activePad === pad.id ? 'scale-110 opacity-100 brightness-150' : 'opacity-80 hover:opacity-100 active:scale-95'}`}
           />
         ))}

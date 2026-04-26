@@ -1,13 +1,16 @@
 import { PUZZLE_IMAGES, SOUNDS } from '@/assets';
 import { THEME } from '@/constants/config';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.puzzle[difficulty] || {};
-  const gridSize = config?.gridSize || 3;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const puzzleTest = testConfigs?.find((test) => test.name === 'Puzzle');
+  const testDescription = puzzleTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const gridSize = testDescription?.config?.gridSize || 3;
   const numPieces = gridSize * gridSize;
 
   const [pool, setPool] = useState([]);
@@ -19,6 +22,8 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
   const [currentImage, setCurrentImage] = useState('');
 
   useEffect(() => {
+    if (isLoading) return;
+
     let initialPool = Array.from({ length: numPieces }).map((_, i) => i);
     initialPool.sort(() => Math.random() - 0.5);
     setPool(initialPool);
@@ -28,7 +33,7 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
     setHasFinished(false);
 
     setCurrentImage(imageUrl || PUZZLE_IMAGES[Math.floor(Math.random() * PUZZLE_IMAGES.length)]);
-  }, [gridSize, numPieces, imageUrl]);
+  }, [gridSize, numPieces, imageUrl, isLoading]);
 
   const checkWin = (currentGrid) => {
     if (currentGrid.includes(null)) return false;
@@ -79,7 +84,11 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
             type: 'iq',
             ar,
             art: timeTakenS.toFixed(1),
-            rawData: { totalMoves: currentMoves, optimalMoves: optimalMoves, timeTakenMs: timeTakenMs },
+            rawData: {
+              totalMoves: currentMoves,
+              optimalMoves: optimalMoves,
+              timeTakenMs: timeTakenMs,
+            },
           }),
         1000,
       );
@@ -130,6 +139,14 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
     };
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-start w-full max-w-lg mx-auto m-h-[75vh] select-none [-webkit-tap-highlight-color:transparent]">
       <div className="text-center mb-6">
@@ -147,7 +164,7 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, 'grid', i)}
             onClick={() => handleSlotClick('grid', i)}
-            className={`w-full rounded-2xl relative overflow-hidden transition-all ${selected?.type === 'grid' && selected?.index === i ? 'ring-4 ring-yellow-400 z-10 scale-95' : 'hover:bg-gray-200'} ${pieceId === null ? 'border-2 border-dashed border-gray-300 aspect-square bg-white/50' : 'shadow-sm cursor-pointer'}`}
+            className={`w-full rounded-2xl relative overflow-hidden transition-all ${selected?.type === 'grid' && selected?.index === i ? 'ring-4 ring-yellow-400 z-10 scale-95' : 'hover:bg-gray-300'} ${pieceId === null ? 'border-2 border-dashed border-gray-500 aspect-square bg-gray-800/20' : 'shadow-sm cursor-pointer'}`}
             style={getPieceStyle(pieceId)}
           >
             {pieceId !== null && !hasFinished && (
@@ -162,7 +179,7 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
       </div>
 
       <div
-        className={`w-full max-h-[200px] overflow-y-scroll ${THEME.bgBeige}  p-4 rounded-3xl shadow-sm border border-gray-200 flex flex-wrap justify-center gap-2 touch-none select-none [-webkit-tap-highlight-color:transparent]`}
+        className={`w-full max-h-[200px] overflow-y-scroll bg-gray-100  p-4 rounded-3xl shadow-sm border border-gray-200 flex flex-wrap justify-center gap-2 touch-none select-none [-webkit-tap-highlight-color:transparent]`}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => handleDrop(e, 'pool', 0)}
         onClick={() => {

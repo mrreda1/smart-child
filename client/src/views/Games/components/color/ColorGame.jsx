@@ -1,13 +1,16 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { Circle, Heart, Square, Star, Triangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.color[difficulty] || {};
-  const numRounds = config?.numRounds || 6;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const colorTest = testConfigs?.find((test) => test.name === 'Colors Identification');
+  const testDescription = colorTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const numRounds = testDescription?.config?.numRounds || 6;
 
   const SHAPES = [
     { id: 'heart', Icon: Heart },
@@ -50,6 +53,8 @@ export const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
   });
 
   useEffect(() => {
+    if (isLoading) return;
+
     let pool = [];
     if (difficulty === 'easy') {
       pool = [
@@ -101,7 +106,7 @@ export const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
       };
     });
     setRounds(generatedRounds);
-  }, [difficulty, numRounds]);
+  }, [difficulty, numRounds, isLoading]);
 
   const handleOptionClick = (shapeId) => {
     if (isTransitioning) return;
@@ -170,6 +175,14 @@ export const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
       isCorrect ? 800 : 1500,
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   if (rounds.length === 0) return null;
   const roundData = rounds[currentRound];

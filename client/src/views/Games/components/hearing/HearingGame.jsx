@@ -1,14 +1,17 @@
 import { HEARING_ITEMS, SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.hearing[difficulty] || {};
-  const numOptions = config?.numOptions || 6;
-  const numRounds = config?.numRounds || 6;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const hearingTest = testConfigs?.find((test) => test.name === 'Sound Identification');
+  const testDescription = hearingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const numOptions = testDescription?.config?.numOptions || 6;
+  const numRounds = testDescription?.config?.numRounds || 6;
 
   const [rounds, setRounds] = useState([]);
   const [currentRound, setCurrentRound] = useState(0);
@@ -26,6 +29,8 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
   const [sumLatency, setSumLatency] = useState(0);
 
   useEffect(() => {
+    if (isLoading) return;
+
     const generatedRounds = [];
     const shuffledTargets = [...HEARING_ITEMS].sort(() => Math.random() - 0.5);
     const safeNumRounds = Math.min(numRounds, HEARING_ITEMS.length);
@@ -45,7 +50,7 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
         } catch (e) {}
       }
     };
-  }, [difficulty, numOptions, numRounds]);
+  }, [difficulty, numOptions, numRounds, isLoading]);
 
   const playCurrentSound = async () => {
     if (isPlaying || isTransitioning) return;
@@ -126,9 +131,17 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
+
   if (rounds.length === 0) return null;
   const roundData = rounds[currentRound];
-  // Adjusted for safe mobile viewing
+
   const gridColsClass =
     roundData.options.length > 6
       ? 'grid-cols-2 md:grid-cols-4'

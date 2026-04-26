@@ -1,14 +1,17 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { Bug, Timer } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.reaction[difficulty] || {};
-  const initialTime = config?.initialTime || 20;
-  const bugLifespan = config?.bugLifespan || 1000;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const bugCatchTest = testConfigs?.find((test) => test.name === 'Bug Catch');
+  const testDescription = bugCatchTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const initialTime = testDescription?.config?.initialTime || 20;
+  const bugLifespan = testDescription?.config?.bugLifespan || 1000;
 
   const [position, setPosition] = useState({ top: '50%', left: '50%' });
   const [successfulHits, setSuccessfulHits] = useState(0);
@@ -64,6 +67,7 @@ export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
 
   const handleStart = (e) => {
     e.stopPropagation();
+    setTimeLeft(initialTime);
     setIsPlaying(true);
     moveTarget();
   };
@@ -90,6 +94,14 @@ export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
     setSuccessfulHits((s) => s + 1);
     moveTarget();
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   return (
     <div

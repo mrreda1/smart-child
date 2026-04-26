@@ -1,12 +1,15 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useRef, useState } from 'react';
 
 export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.light_reaction[difficulty] || {};
-  const totalRounds = config?.totalRounds || 8;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const lightReactionTest = testConfigs?.find((test) => test.name === 'Light Reaction');
+  const testDescription = lightReactionTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const totalRounds = testDescription?.config?.totalRounds || 8;
 
   const [lightState, setLightState] = useState('red');
   const [currentRound, setCurrentRound] = useState(0);
@@ -42,7 +45,7 @@ export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
   }, [currentRound, isPlaying, totalSelections, successfulHits, sumResponseTime, onFinish, totalRounds, hasFinished]);
 
   useEffect(() => {
-    if (!isPlaying || currentRound >= totalRounds || hasFinished) return;
+    if (!isPlaying || currentRound >= totalRounds || hasFinished || isLoading) return;
 
     if (lightState === 'green') return;
 
@@ -61,7 +64,6 @@ export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
         if (lightState === 'red') {
           nextState = 'yellow';
         } else {
-          // Fake-out mechanics
           const fakeOutChance = difficulty === 'easy' ? 0.1 : difficulty === 'medium' ? 0.3 : 0.5;
           nextState = Math.random() < fakeOutChance ? 'red' : 'green';
         }
@@ -73,7 +75,7 @@ export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
     );
 
     return () => clearTimeout(cycleTimerRef.current);
-  }, [isPlaying, lightState, currentRound, difficulty, totalRounds, hasFinished]);
+  }, [isPlaying, lightState, currentRound, difficulty, totalRounds, hasFinished, isLoading]); // Added isLoading to dependencies
 
   const handleTap = () => {
     if (!isPlaying || currentRound >= totalRounds || hasFinished) return;
@@ -95,6 +97,15 @@ export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
       playSound(SOUNDS.wrong);
     }
   };
+
+  // Consistent Loading UI
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto h-[60vh] select-none [-webkit-tap-highlight-color:transparent]">

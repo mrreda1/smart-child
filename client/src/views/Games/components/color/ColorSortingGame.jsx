@@ -1,13 +1,16 @@
 import { SOUNDS } from '@/assets';
 import { COLORED_ITEMS } from '@/constants/testData';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.color_sorting[difficulty] || {};
-  const maxRounds = config?.maxRounds || 9;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const colorSortTest = testConfigs?.find((test) => test.name === 'Color Sorting');
+  const testDescription = colorSortTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const maxRounds = testDescription?.config?.maxRounds || 9;
 
   const BINS = [
     { id: 'Red', color: 'bg-red-500' },
@@ -32,6 +35,8 @@ export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
   const [hasFinished, setHasFinished] = useState(false);
 
   useEffect(() => {
+    if (isLoading) return;
+
     const redItems = [...COLORED_ITEMS.Red].sort(() => Math.random() - 0.5);
     const greenItems = [...COLORED_ITEMS.Green].sort(() => Math.random() - 0.5);
     const blueItems = [...COLORED_ITEMS.Blue].sort(() => Math.random() - 0.5);
@@ -49,7 +54,7 @@ export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
 
     pool.sort(() => Math.random() - 0.5);
     setSchedule(pool);
-  }, [maxRounds, difficulty]);
+  }, [maxRounds, difficulty, isLoading]);
 
   useEffect(() => {
     if (round < maxRounds && schedule.length > 0) {
@@ -58,7 +63,7 @@ export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
   }, [round, schedule, maxRounds]);
 
   useEffect(() => {
-    if (round >= maxRounds && schedule.length > 0 && !hasFinished) {
+    if (round >= maxRounds && schedule.length > 0 && !hasFinished && !isLoading) {
       setHasFinished(true);
       const ar = totalSelections === 0 ? '0.0' : ((correctIdentifications / totalSelections) * 100).toFixed(1);
       const redProfile = stats.Red.prompts === 0 ? '0.0' : ((stats.Red.hits / stats.Red.prompts) * 100).toFixed(1);
@@ -77,7 +82,7 @@ export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
         },
       });
     }
-  }, [round, maxRounds, schedule, hasFinished, totalSelections, correctIdentifications, stats, onFinish]);
+  }, [round, maxRounds, schedule, hasFinished, totalSelections, correctIdentifications, stats, onFinish, isLoading]);
 
   const handleBinTap = (binId) => {
     if (!currentItem || isTransitioning || round >= maxRounds || hasFinished) return;
@@ -114,6 +119,14 @@ export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
       isCorrect ? 500 : 1500,
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-between w-full max-w-md mx-auto h-[65vh] select-none [-webkit-tap-highlight-color:transparent]">

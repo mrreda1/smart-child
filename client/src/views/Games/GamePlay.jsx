@@ -42,9 +42,9 @@ export const GamePlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { globalStars, setGlobalStars, testDifficulties, setTestDifficulties, setTestConfigs } = useAppContext();
+  const { globalStars, setGlobalStars, testDifficulties, setTestDifficulties } = useAppContext();
 
-  const state = location?.state || { mode: 'free', gameId: 'visual_sequence', difficulty: 'easy' };
+  const state = location?.state;
 
   const mode = state.mode || 'free';
   const [testQueue, setTestQueue] = useState(state.testQueue || []);

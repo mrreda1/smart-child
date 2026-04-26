@@ -1,13 +1,15 @@
 import { SOUNDS } from '@/assets';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { Puzzle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.memory[difficulty] || {};
-  const targetPairs = config?.targetPairs || 6;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const matchingTest = testConfigs?.find((test) => test.name === 'Matching');
+  const testDescription = matchingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+  const targetPairs = testDescription?.config?.targetPairs || 6;
 
   const ALL_ICONS = ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐸', '🐼'];
   const [cards, setCards] = useState([]);
@@ -27,6 +29,8 @@ export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
   const iconSize = difficulty === 'easy' ? 48 : 32;
 
   useEffect(() => {
+    if (isLoading) return;
+
     let pairCount = targetPairs;
     const selectedIcons = ALL_ICONS.slice(0, pairCount);
     let deck = [...selectedIcons, ...selectedIcons].map((emoji, idx) => ({
@@ -43,6 +47,7 @@ export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
     let timeLeft = 3;
     const interval = setInterval(() => {
       timeLeft -= 1;
+      playSound(SOUNDS.cowntdown);
       setPreviewTime(timeLeft);
       if (timeLeft <= 0) {
         clearInterval(interval);
@@ -53,7 +58,7 @@ export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [difficulty, targetPairs]);
+  }, [difficulty, targetPairs, isLoading]); // Added isLoading to dependency array
 
   const handleCardClick = (index) => {
     if (isPreviewing || isProcessing || flippedIndices.length === 2 || cards[index].isFlipped || cards[index].isMatched)
@@ -128,6 +133,15 @@ export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
       }
     }
   };
+
+  // Optional: Add a simple loading state return so the screen doesn't stay blank
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-lg mx-auto h-[60vh] relative select-none [-webkit-tap-highlight-color:transparent]">

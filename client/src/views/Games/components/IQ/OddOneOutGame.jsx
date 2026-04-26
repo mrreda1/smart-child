@@ -1,13 +1,16 @@
 import { SOUNDS } from '@/assets';
 import { SIMILAR_PAIRS } from '@/constants/testData';
-import { useAppContext } from '@/context/AppContext';
+import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { testConfigs } = useAppContext();
-  const config = testConfigs.odd_one_out[difficulty] || {};
-  const maxRounds = config?.maxRounds || 5;
+  const { data: testConfigs, isLoading } = useGetTestsConfig();
+
+  const oddOneOutTest = testConfigs?.find((test) => test.name === 'Odd One Out');
+  const testDescription = oddOneOutTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
+
+  const maxRounds = testDescription?.config?.maxRounds || 5;
 
   const [round, setRound] = useState(0);
   const [items, setItems] = useState([]);
@@ -18,9 +21,9 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
   const [reveal, setReveal] = useState({ show: false, clickedId: null });
 
   useEffect(() => {
-    if (round >= maxRounds) return;
+    if (isLoading || round >= maxRounds) return;
 
-    if (round === 0) setStartTime(Date.now());
+    if (round === 0 && !startTime) setStartTime(Date.now());
 
     const diffPairs = SIMILAR_PAIRS[difficulty] || SIMILAR_PAIRS.medium;
     const selectedPair = diffPairs[Math.floor(Math.random() * diffPairs.length)];
@@ -40,10 +43,10 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
     newItems[Math.floor(Math.random() * 4)] = { id: 3, emoji: oddEmoji, isOdd: true };
 
     setItems(newItems.sort(() => Math.random() - 0.5).map((item, i) => ({ ...item, id: i })));
-  }, [round, difficulty, maxRounds]);
+  }, [round, difficulty, maxRounds, isLoading, startTime]);
 
   useEffect(() => {
-    if (round >= maxRounds && !hasFinished) {
+    if (round >= maxRounds && !hasFinished && !isLoading) {
       setHasFinished(true);
       const timeTakenMs = Date.now() - startTime;
       const timeTakenS = timeTakenMs / 1000;
@@ -60,7 +63,7 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
         },
       });
     }
-  }, [round, maxRounds, hasFinished, startTime, correctCount, onFinish]);
+  }, [round, maxRounds, hasFinished, startTime, correctCount, onFinish, isLoading]);
 
   const handleSelect = (id, isOdd) => {
     if (reveal.show || hasFinished) return;
@@ -82,6 +85,14 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
       isOdd ? 800 : 1500,
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-[#FFC82C] font-bold">
+        Loading test configuration...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto h-[60vh] select-none [-webkit-tap-highlight-color:transparent]">
