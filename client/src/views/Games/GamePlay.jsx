@@ -1,47 +1,61 @@
-import { playSound } from '@/utils/sound';
 import { SOUNDS } from '@/assets';
 import Confetti from '@/components/common/Confetti';
 import { IS_DEV, THEME } from '@/constants/config';
 import { useAppContext } from '@/context/AppContext';
+import { playSound } from '@/utils/sound';
 import {
+  Archive,
   ArrowLeft,
   BarChart2,
   Brain,
   Ear,
   Hand,
+  Layers,
+  Loader2,
+  Music,
   Palette,
   PenTool,
   Play,
   Puzzle,
   RotateCcw,
+  Search,
   Star,
   TrendingUp,
   Trophy,
+  Zap,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { MemoryGame } from './components/memory/MemoryGame';
+import { VisualSequenceGame } from './components/memory/VisualSequenceGame';
+import { ReactionGame } from './components/speed/ReactionGame';
+import { LightReactionGame } from './components/speed/LightReactionGame';
+import { ColorGame } from './components/color/ColorGame';
+import { ColorSortingGame } from './components/color/ColorSortingGame';
+import { HearingGame } from './components/hearing/HearingGame';
+import { PathSoundGame } from './components/hearing/PathSoundGame';
+import { PuzzleGame } from './components/IQ/PuzzleGame';
+import { OddOneOutGame } from './components/IQ/OddOneOutGame';
+import { DrawingGame } from './components/drawing/DrawingGame';
 import { useLocation, useNavigate } from 'react-router-dom';
-import MemoryGame from './components/MemoryGame';
-import ReactionGame from './components/ReactionGame';
-import ColorGame from './components/ColorGame';
-import HearingGame from './components/HearingGame';
-import DrawingGame from './components/DrawingGame';
 
-const GamePlay = () => {
+export const GamePlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state || {};
-  const { globalStars, setGlobalStars, testDifficulties, setTestDifficulties } = useAppContext();
+
+  const { globalStars, setGlobalStars, testDifficulties, setTestDifficulties, setTestConfigs } = useAppContext();
+
+  const state = location?.state || { mode: 'free', gameId: 'visual_sequence', difficulty: 'easy' };
 
   const mode = state.mode || 'free';
-  const testQueue = state.testQueue || [];
+  const [testQueue, setTestQueue] = useState(state.testQueue || []);
 
   const [currentTestIndex, setCurrentTestIndex] = useState(0);
   const [dailyResults, setDailyResults] = useState({});
   const [sessionStarsEarned, setSessionStarsEarned] = useState(0);
   const [hasStartedDaily, setHasStartedDaily] = useState(false);
+  const [isFetchingConfig, setIsFetchingConfig] = useState(mode === 'daily');
 
   const currentGameId = mode === 'daily' ? testQueue[currentTestIndex] : state.gameId;
-
   const difficultyRef = useRef(
     mode === 'daily' ? testDifficulties[currentGameId] || 'easy' : state.difficulty || 'easy',
   );
@@ -57,40 +71,65 @@ const GamePlay = () => {
   const [devMetrics, setDevMetrics] = useState(null);
   const [isFestival, setIsFestival] = useState(false);
 
-  if (!currentGameId) return null;
+  useEffect(() => {
+    if (mode === 'daily') {
+      const fetchAssessmentDetails = async () => {
+        try {
+          setIsFetchingConfig(true);
+          // ======================================================================
+          // 🚀 API CALL LOCATION (DAILY ASSESSMENT QUEUE & DIFFICULTIES)
+          // Fetch the specific tests assigned for today AND their difficulties.
+          // Example:
+          // const response = await fetch('/api/assessments/current');
+          // const assessmentData = await response.json();
+          // setTestDifficulties(assessmentData.assignedDifficulties);
+          // setTestQueue(assessmentData.testQueue);
+          // ======================================================================
 
-  const gameDetails = {
-    memory: {
-      title: 'Memory Match',
-      color: 'bg-[#86D293]',
-      textColor: 'text-[#86D293]',
-      icon: <Brain size={24} fill="currentColor" />,
-    },
-    reaction: {
-      title: 'Reaction Bug',
-      color: 'bg-[#ff5e5e]',
-      textColor: 'text-[#ff5e5e]',
-      icon: <Hand size={24} fill="currentColor" />,
-    },
-    color: {
-      title: 'Color Explorer',
-      color: 'bg-[#60A5FA]',
-      textColor: 'text-[#60A5FA]',
-      icon: <Palette size={24} fill="currentColor" />,
-    },
-    hearing: {
-      title: 'Sound Explorer',
-      color: 'bg-[#a78bfa]',
-      textColor: 'text-[#a78bfa]',
-      icon: <Ear size={24} fill="currentColor" />,
-    },
-    drawing: {
-      title: 'Creative Canvas',
-      color: 'bg-[#fbbf24]',
-      textColor: 'text-[#fbbf24]',
-      icon: <PenTool size={24} fill="currentColor" />,
-    },
-  }[currentGameId];
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+
+          // Mock fallback logic if no queue is passed down from API for UI preview purposes
+          if (testQueue.length === 0) {
+            setTestQueue([
+              'memory',
+              'visual_sequence',
+              'reaction',
+              'light_reaction',
+              'color',
+              'color_sorting',
+              'hearing',
+              'path_sound',
+              'puzzle',
+              'odd_one_out',
+              'drawing',
+            ]);
+          }
+        } catch (error) {
+          console.error('Failed to fetch assessment difficulties:', error);
+        } finally {
+          setIsFetchingConfig(false);
+        }
+      };
+
+      fetchAssessmentDetails();
+    }
+  }, [mode, setTestDifficulties]);
+
+  const TEST_DETAILS = {
+    memory: { title: 'Memory Match', icon: Brain, bg: 'bg-green-100', text: 'text-green-500' },
+    visual_sequence: { title: 'Visual Sequence', icon: Layers, bg: 'bg-green-100', text: 'text-green-500' },
+    reaction: { title: 'Reaction Bug', icon: Hand, bg: 'bg-red-100', text: 'text-red-500' },
+    light_reaction: { title: 'Light Reaction', icon: Zap, bg: 'bg-red-100', text: 'text-red-500' },
+    color: { title: 'Color Explorer', icon: Palette, bg: 'bg-blue-100', text: 'text-blue-500' },
+    color_sorting: { title: 'Color Sorting', icon: Archive, bg: 'bg-blue-100', text: 'text-blue-500' },
+    hearing: { title: 'Sound Explorer', icon: Ear, bg: 'bg-purple-100', text: 'text-purple-500' },
+    path_sound: { title: 'Path Sound', icon: Music, bg: 'bg-purple-100', text: 'text-purple-500' },
+    puzzle: { title: 'Puzzle Maker', icon: Puzzle, bg: 'bg-pink-100', text: 'text-pink-500' },
+    odd_one_out: { title: 'Odd One Out', icon: Search, bg: 'bg-pink-100', text: 'text-pink-500' },
+    drawing: { title: 'Creative Canvas', icon: PenTool, bg: 'bg-yellow-100', text: 'text-yellow-500' },
+  };
+
+  const gameDetails = currentGameId ? TEST_DETAILS[currentGameId] : null;
 
   const handleFinish = (score, metrics) => {
     let isGoodGame = false;
@@ -98,22 +137,24 @@ const GamePlay = () => {
     if (metrics) {
       if (metrics.type === 'drawing') {
         isGoodGame = true;
-      } else if (metrics.RedProfile !== undefined) {
-        const arValue = parseFloat(metrics.AR);
+      } else if (metrics.type === 'iq') {
+        isGoodGame = parseFloat(metrics.ar) >= 50;
+      } else if (metrics.redProfile !== undefined) {
+        const arValue = parseFloat(metrics.ar);
         const rgbSum =
-          parseFloat(metrics.RedProfile) + parseFloat(metrics.GreenProfile) + parseFloat(metrics.BlueProfile);
+          parseFloat(metrics.redProfile) + parseFloat(metrics.greenProfile) + parseFloat(metrics.blueProfile);
         isGoodGame = arValue >= 50 && rgbSum >= 50;
-      } else if (metrics.ISR !== undefined) {
-        const isrValue = parseFloat(metrics.ISR);
-        const aarlValue = parseFloat(metrics.AARL);
+      } else if (metrics.isr !== undefined) {
+        const isrValue = parseFloat(metrics.isr);
+        const aarlValue = parseFloat(metrics.aarl);
         isGoodGame = isrValue >= 50 && aarlValue > 0 && aarlValue <= 3.0;
-      } else if (metrics.AR !== undefined) {
-        const arValue = parseFloat(metrics.AR);
-        const arlValue = parseFloat(metrics.ARL);
+      } else if (metrics.ar !== undefined && metrics.arl !== undefined) {
+        const arValue = parseFloat(metrics.ar);
+        const arlValue = parseFloat(metrics.arl);
         isGoodGame = arValue >= 50 && arlValue > 0 && arlValue <= 2.5;
-      } else if (metrics.MRT !== undefined) {
-        const piValue = parseFloat(metrics.PI);
-        const mrtValue = parseFloat(metrics.MRT);
+      } else if (metrics.mrt !== undefined) {
+        const piValue = parseFloat(metrics.pi);
+        const mrtValue = parseFloat(metrics.mrt);
         isGoodGame = piValue >= 50 && mrtValue > 0 && mrtValue <= 1500;
       }
     } else {
@@ -122,12 +163,13 @@ const GamePlay = () => {
 
     if (mode === 'free') {
       setDevMetrics(metrics);
-
       setGameOver(true);
       if (isGoodGame) {
         setIsFestival(true);
         playSound(SOUNDS.win);
-      } else playSound(SOUNDS.fail);
+      } else {
+        playSound(SOUNDS.fail);
+      }
     } else if (mode === 'daily') {
       let starDelta = 0;
       if (metrics?.type === 'drawing') {
@@ -161,36 +203,49 @@ const GamePlay = () => {
         });
       }
 
-      const updatedResults = {
-        ...dailyResults,
-        [currentGameId]: { rawData: metrics },
-      };
+      const updatedResults = { ...dailyResults, [currentGameId]: { rawData: metrics } };
       setDailyResults(updatedResults);
 
+      // ======================================================================
+      // 🚀 API CALL LOCATION (PER TEST IN DAILY MODE)
+      // Make your API call here to pass the raw data of the finished test to your server!
+      // Example:
+      // await submitTestResultToServer({
+      //   gameId: currentGameId,
+      //   difficulty: currentDifficulty,
+      //   metrics: metrics
+      // });
+      // ======================================================================
+
+      console.log(metrics);
+
       if (currentTestIndex < testQueue.length - 1) {
-        if (isGoodGame || metrics?.type === 'drawing') {
-          setTimeout(() => {
+        setTimeout(
+          () => {
             setIsFestival(false);
             setCurrentTestIndex((prev) => prev + 1);
-          }, 2500);
-        } else {
-          setCurrentTestIndex((prev) => prev + 1);
-        }
+          },
+          isGoodGame ? 2500 : 500,
+        );
       } else {
         setDevMetrics(updatedResults);
         const endDailySequence = () => {
-          console.log(updatedResults);
-
           setGlobalStars((prev) => Math.max(0, prev + newSessionTotal));
           setGameOver(true);
+
+          // ==================================================================
+          // 🚀 OPTIONAL API CALL LOCATION (END OF DAILY SEQUENCE)
+          // If you prefer to submit all results at once when the sequence is fully done, do it here.
+          // Example:
+          // await submitCompleteSessionToServer({ allResults: updatedResults });
+          // ==================================================================
         };
-        if (isGoodGame || metrics?.type === 'drawing') {
-          setTimeout(() => {
+        setTimeout(
+          () => {
             endDailySequence();
-          }, 2500);
-        } else {
-          endDailySequence();
-        }
+          },
+          isGoodGame ? 2500 : 500,
+        );
       }
     }
   };
@@ -202,27 +257,32 @@ const GamePlay = () => {
     } else if (devMetrics) {
       if (devMetrics.type === 'drawing') {
         feedbackMessage = 'Beautiful Artwork! 🎨';
-      } else if (devMetrics.RedProfile !== undefined) {
-        const arValue = parseFloat(devMetrics.AR);
+      } else if (devMetrics.type === 'iq') {
+        const arValue = parseFloat(devMetrics.ar);
+        if (arValue >= 80) feedbackMessage = 'Genius Mind! 🧠';
+        else if (arValue >= 50) feedbackMessage = 'Great Logic! 🧩';
+        else feedbackMessage = 'Good Try! Keep Thinking! 💪';
+      } else if (devMetrics.redProfile !== undefined) {
+        const arValue = parseFloat(devMetrics.ar);
         if (arValue >= 100) feedbackMessage = 'Eagle Eye! 🦅';
         else if (arValue >= 80) feedbackMessage = 'Sharp Vision! 👁️';
         else if (arValue >= 50) feedbackMessage = 'Great Spotting! 🎨';
         else feedbackMessage = 'Good Try! Look closer next time! 💪';
-      } else if (devMetrics.ISR !== undefined) {
-        const isrValue = parseFloat(devMetrics.ISR);
+      } else if (devMetrics.isr !== undefined) {
+        const isrValue = parseFloat(devMetrics.isr);
         if (isrValue >= 100) feedbackMessage = 'Perfect Hearing! 🦇';
         else if (isrValue >= 80) feedbackMessage = 'Super Listener! 👂';
         else if (isrValue >= 50) feedbackMessage = 'Great Job! Keep Listening! 👍';
         else feedbackMessage = 'Good Try! Listen closely next time! 💪';
-      } else if (devMetrics.AR !== undefined) {
-        const arValue = parseFloat(devMetrics.AR);
+      } else if (devMetrics.ar !== undefined && devMetrics.arl !== undefined) {
+        const arValue = parseFloat(devMetrics.ar);
         if (arValue >= 100) feedbackMessage = 'Perfect Memory! 🌟';
         else if (arValue >= 80) feedbackMessage = 'Amazing Recall! 🧠';
         else if (arValue >= 50) feedbackMessage = 'Great Job! Keep Practicing! 👍';
         else feedbackMessage = "Good Try! You'll get it next time! 💪";
-      } else if (devMetrics.PI !== undefined) {
-        const piValue = parseFloat(devMetrics.PI);
-        const mrtValue = parseFloat(devMetrics.MRT);
+      } else if (devMetrics.pi !== undefined) {
+        const piValue = parseFloat(devMetrics.pi);
+        const mrtValue = parseFloat(devMetrics.mrt);
         if (piValue >= 80 && mrtValue < 1000) feedbackMessage = 'Lightning Fast Precision! ⚡';
         else if (piValue >= 50 && mrtValue < 1500) feedbackMessage = 'Great Reflexes! 🏃';
         else feedbackMessage = "Nice Try! Let's play again! 💪";
@@ -230,7 +290,9 @@ const GamePlay = () => {
     }
 
     return (
-      <div className={`min-h-screen bg-sky-img flex flex-col items-center justify-center p-6 relative overflow-y-auto`}>
+      <div
+        className={`min-h-screen bg-sky-img flex flex-col items-center justify-center p-6 relative overflow-y-auto select-none [-webkit-tap-highlight-color:transparent]`}
+      >
         {isFestival && <Confetti />}
         <div className="bg-white p-10 md:p-12 rounded-[3rem] shadow-xl text-center max-w-md w-full animate-in zoom-in duration-500 relative z-10 my-8">
           <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -257,106 +319,77 @@ const GamePlay = () => {
                 <BarChart2 size={14} /> Dev Purpose Metrics
               </p>
               <div className="space-y-2 font-mono text-sm">
-                {devMetrics.type === 'drawing' ? (
+                {devMetrics.type === 'iq' ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">IQ Score (AR):</span>
+                      <span className="font-bold text-gray-800">{devMetrics.ar}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Avg Time (ART):</span>
+                      <span className="font-bold text-gray-800">{devMetrics.art}s</span>
+                    </div>
+                  </>
+                ) : devMetrics.type === 'drawing' ? (
                   <>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Test Type:</span>
-                      <span className="font-bold text-gray-800">Drawing Output (PNG)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Child Expression:</span>
-                      <span className="font-bold text-gray-800">{devMetrics.expression}</span>
-                    </div>
-                    <div className="mt-4 flex justify-center">
-                      <img
-                        src={devMetrics.rawData.imageBase64}
-                        alt="Child's Drawing"
-                        className="w-32 h-32 border border-gray-300 rounded-xl shadow-sm object-cover"
-                      />
+                      <span className="font-bold text-gray-800">Drawing</span>
                     </div>
                   </>
-                ) : devMetrics.RedProfile !== undefined ? (
+                ) : devMetrics.redProfile !== undefined ? (
                   <>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Color Accuracy (AR):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.AR}%</span>
+                      <span className="font-bold text-gray-800">{devMetrics.ar}%</span>
                     </div>
                     <div className="flex justify-between mt-2 pt-2 border-t text-xs text-red-500">
                       <span className="font-bold">Red Profile:</span>
-                      <span className="font-black">{devMetrics.RedProfile}%</span>
+                      <span className="font-black">{devMetrics.redProfile}%</span>
                     </div>
                     <div className="flex justify-between text-xs text-green-500">
                       <span className="font-bold">Green Profile:</span>
-                      <span className="font-black">{devMetrics.GreenProfile}%</span>
+                      <span className="font-black">{devMetrics.greenProfile}%</span>
                     </div>
                     <div className="flex justify-between text-xs text-blue-500">
                       <span className="font-bold">Blue Profile:</span>
-                      <span className="font-black">{devMetrics.BlueProfile}%</span>
+                      <span className="font-black">{devMetrics.blueProfile}%</span>
                     </div>
                   </>
-                ) : devMetrics.ISR !== undefined ? (
+                ) : devMetrics.isr !== undefined ? (
                   <>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Success Rate (ISR):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.ISR}%</span>
+                      <span className="font-bold text-gray-800">{devMetrics.isr}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Avg Latency (AARL):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.AARL}s</span>
-                    </div>
-                    <div className="flex justify-between border-t mt-2 pt-2 text-xs text-gray-400">
-                      <span className="font-bold">Correct: {devMetrics.correctIdentifications}</span>
-                      <span className="font-bold">Total Sounds: {devMetrics.totalPlayed}</span>
+                      <span className="font-bold text-gray-800">{devMetrics.aarl}s</span>
                     </div>
                   </>
-                ) : devMetrics.AR !== undefined ? (
+                ) : devMetrics.ar !== undefined && devMetrics.arl !== undefined ? (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Hits (Pairs Found):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.targetPairs}</span>
+                      <span className="text-gray-500">Accuracy (AR):</span>
+                      <span className="font-bold text-blue-600">{devMetrics.ar}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Selections (Moves):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.rawData.total_moves}</span>
-                    </div>
-                    <div className="flex justify-between border-t mt-2 pt-2">
-                      <span className="text-gray-500 font-bold">Accuracy (AR):</span>
-                      <span className="font-black text-blue-600">{devMetrics.AR}%</span>
+                      <span className="text-gray-500">Latency (ARL):</span>
+                      <span className="font-bold text-blue-600">{devMetrics.arl}s</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Successful Hits:</span>
-                      <span className="font-bold text-gray-800">{devMetrics.rawData.successful_hits}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Total Selections:</span>
-                      <span className="font-bold text-gray-800">{devMetrics.rawData.total_taps}</span>
-                    </div>
-                    <div className="flex justify-between border-t mt-2 pt-2">
                       <span className="text-gray-500 font-bold">Precision (PI):</span>
-                      <span className="font-black text-red-600">{devMetrics.PI}%</span>
+                      <span className="font-black text-red-600">{devMetrics.pi}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500 font-bold">Mean RT (MRT):</span>
-                      <span className="font-black text-green-600">{devMetrics.MRT}ms</span>
+                      <span className="font-black text-green-600">{devMetrics.mrt}ms</span>
                     </div>
                   </>
                 )}
-              </div>
-            </div>
-          )}
-
-          {IS_DEV && devMetrics && mode === 'daily' && (
-            <div className="mb-8 bg-gray-900 p-4 rounded-2xl text-left overflow-hidden">
-              <p className="text-xs font-black text-green-400 uppercase tracking-wider mb-2 flex items-center gap-1 border-b border-gray-700 pb-2">
-                <BarChart2 size={14} /> Final API Data Object
-              </p>
-              <div className="max-h-48 overflow-y-auto">
-                <pre className="font-mono text-[10px] text-gray-300">
-                  {JSON.stringify(devMetrics, (key, val) => (key === 'imageBase64' ? '[Base64 PNG String]' : val), 2)}
-                </pre>
               </div>
             </div>
           )}
@@ -369,13 +402,13 @@ const GamePlay = () => {
                   setDevMetrics(null);
                   setIsFestival(false);
                 }}
-                className={`w-full ${gameDetails.color} text-white font-bold py-4 rounded-full text-lg shadow-sm hover:opacity-90 transition-all flex justify-center items-center gap-2`}
+                className={`w-full bg-blue-500 text-white font-bold py-4 rounded-full text-lg shadow-sm hover:opacity-90 transition-all flex justify-center items-center gap-2`}
               >
                 <RotateCcw size={20} /> Play Again
               </button>
             )}
             <button
-              onClick={() => navigate(mode === 'daily' ? '/child-dashboard' : '/free-play')}
+              onClick={() => navigate(mode === 'daily' ? '/child/dashboard' : '/child/free-play')}
               className="w-full bg-gray-100 text-gray-600 font-bold py-4 rounded-full text-lg shadow-sm hover:bg-gray-200 transition-all"
             >
               {mode === 'daily' ? 'Back to Dashboard' : 'Back to Menu'}
@@ -386,36 +419,129 @@ const GamePlay = () => {
     );
   }
 
+  if (mode === 'daily' && !hasStartedDaily) {
+    if (isFetchingConfig) {
+      return (
+        <div
+          className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col items-center justify-center p-6 relative select-none [-webkit-tap-highlight-color:transparent]`}
+        >
+          <div className="bg-white p-10 rounded-[3rem] shadow-xl text-center max-w-sm w-full animate-pulse flex flex-col items-center">
+            <Loader2 className="w-16 h-16 text-yellow-400 animate-spin mb-6" />
+            <h2 className="text-2xl font-black text-gray-800">Preparing Assessment...</h2>
+            <p className="text-gray-500 font-bold text-sm mt-2">Loading today's challenges</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col p-4 md:p-6 select-none [-webkit-tap-highlight-color:transparent]`}
+      >
+        <div className="flex justify-between items-center w-full max-w-md mx-auto mb-6">
+          <button
+            onClick={() => navigate('/child/dashboard')}
+            className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-full shadow-sm font-bold text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft size={16} /> Back
+          </button>
+          <div className="bg-white border border-gray-200 px-5 py-2 rounded-full font-black text-gray-800 shadow-sm text-sm">
+            Daily Tests
+          </div>
+          <div className="bg-white border border-gray-200 px-4 py-2 rounded-full font-black text-gray-800 shadow-sm text-sm flex items-center gap-1">
+            <Star size={16} className="text-yellow-400 fill-yellow-400" /> {globalStars}
+          </div>
+        </div>
+
+        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl text-center max-w-md w-full mx-auto relative flex flex-col h-[85vh]">
+          <div className="w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto -mt-12 mb-4 border-4 border-white shadow-sm">
+            <Puzzle size={32} fill="currentColor" />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Today's Tests</h1>
+
+          <div className="bg-blue-50 rounded-2xl p-4 mb-4 border border-blue-100 text-left shrink-0">
+            <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2 text-sm">
+              <TrendingUp size={16} /> Smart Adaptive Tests
+            </h3>
+            <p className="text-xs text-blue-500 mb-2">
+              Each test tracks your child's performance individually based on speed and accuracy!
+            </p>
+            <ul className="text-xs font-medium text-blue-600 space-y-1">
+              <li>
+                • <span className="font-bold">Pass a test:</span> It levels up (gets harder) next time.
+              </li>
+              <li>
+                • <span className="font-bold">Struggle:</span> It levels down to help them practice.
+              </li>
+              <li>
+                • <span className="font-bold">Stars:</span> Earned for completing tests. Harder tests give more stars!
+              </li>
+            </ul>
+          </div>
+
+          <div
+            className="flex-1 overflow-y-auto space-y-3 mb-6 pr-2 rounded-xl custom-scrollbar"
+            style={{ maxHeight: '40vh' }}
+          >
+            {testQueue.map((testId, index) => {
+              const details = TEST_DETAILS[testId];
+              const TestIcon = details.icon;
+              return (
+                <div
+                  key={testId}
+                  className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm"
+                >
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${details.bg} ${details.text}`}
+                  >
+                    <TestIcon
+                      size={24}
+                      fill={testId !== 'odd_one_out' && testId !== 'drawing' ? 'currentColor' : 'none'}
+                    />
+                  </div>
+                  <div className="text-left flex-1 flex items-center justify-between">
+                    <div>
+                      <p className="font-black text-gray-400 text-[10px] uppercase tracking-wider">Test {index + 1}</p>
+                      <p className={`font-black text-lg ${details.text}`}>{details.title}</p>
+                    </div>
+                    {testId !== 'drawing' && (
+                      <span className="text-[10px] font-black text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 uppercase tracking-wider">
+                        {testDifficulties[testId] || 'EASY'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setHasStartedDaily(true)}
+            className="w-full bg-[#fbbf24] text-gray-900 font-black py-4 px-6 rounded-full hover:scale-105 shadow-sm text-lg flex items-center justify-center gap-2 shrink-0"
+          >
+            Start <Play size={18} fill="currentColor" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-screen bg-sky-img font-sans relative`}>
+    <div className={`min-h-screen bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]`}>
       <div className="max-w-4xl mx-auto p-6 py-10 flex flex-col h-full">
         <header className="flex justify-between items-center mb-10">
-          {mode === 'free' ? (
-            <button
-              onClick={() => navigate('/free-play')}
-              className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
-            >
-              <ArrowLeft size={18} /> Quit
-            </button>
-          ) : mode === 'daily' && !hasStartedDaily ? (
-            <button
-              onClick={() => navigate('/child-dashboard')}
-              className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
-            >
-              <ArrowLeft size={18} /> Back
-            </button>
-          ) : (
-            <div className="w-[100px]"></div>
-          )}
-
+          <button
+            onClick={() => navigate(mode === 'daily' ? '/child/dashboard' : '/child/free-play')}
+            className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
+          >
+            <ArrowLeft size={18} /> {mode === 'daily' ? 'Back' : 'Quit'}
+          </button>
           <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {mode === 'daily'
-              ? !hasStartedDaily
-                ? 'Daily Tests'
-                : `Test ${currentTestIndex + 1}/${testQueue.length} : ${gameDetails.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`
+              ? `Test ${currentTestIndex + 1}/${testQueue.length} : ${gameDetails?.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`
               : currentGameId === 'drawing'
-                ? gameDetails.title
-                : `${gameDetails.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`}
+                ? gameDetails?.title
+                : `${gameDetails?.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`}
           </div>
           <div className="bg-white px-4 py-2 rounded-full font-black text-lg flex items-center shadow-sm border-2 border-gray-100 text-gray-800">
             <Star size={18} className="mr-2 text-yellow-400 fill-yellow-400" /> {globalStars}
@@ -423,103 +549,17 @@ const GamePlay = () => {
         </header>
 
         <div className="flex-1 flex items-center justify-center">
-          {mode === 'daily' && !hasStartedDaily ? (
-            <div className="bg-white p-10 rounded-[3rem] shadow-xl text-center max-w-md w-full animate-in zoom-in duration-500">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Puzzle size={48} className="text-blue-500" />
-              </div>
-              <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">Today's Tests</h1>
-
-              <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-200 text-left">
-                <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-                  <TrendingUp size={18} className="text-blue-500" /> Smart Adaptive Tests
-                </h3>
-                <p className="text-xs text-blue-700 mb-2">
-                  Each test tracks your child's performance individually based on speed and accuracy!
-                </p>
-                <ul className="text-xs font-medium text-blue-800 space-y-1">
-                  <li>
-                    • <strong>Pass a test:</strong> It levels up (gets harder) next time.
-                  </li>
-                  <li>
-                    • <strong>Struggle:</strong> It levels down to help them practice.
-                  </li>
-                  <li>
-                    • <strong>Stars:</strong> Earned for completing tests. Harder tests give more stars!
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                {testQueue.map((testId, index) => {
-                  const details = {
-                    memory: {
-                      title: 'Memory Match',
-                      icon: <Brain size={24} fill="currentColor" />,
-                      color: 'bg-[#86D293]',
-                      text: 'text-[#86D293]',
-                    },
-                    reaction: {
-                      title: 'Reaction Bug',
-                      icon: <Hand size={24} fill="currentColor" />,
-                      color: 'bg-[#ff5e5e]',
-                      text: 'text-[#ff5e5e]',
-                    },
-                    color: {
-                      title: 'Color Explorer',
-                      icon: <Palette size={24} fill="currentColor" />,
-                      color: 'bg-[#60A5FA]',
-                      text: 'text-[#60A5FA]',
-                    },
-                    hearing: {
-                      title: 'Sound Explorer',
-                      icon: <Ear size={24} fill="currentColor" />,
-                      color: 'bg-[#a78bfa]',
-                      text: 'text-[#a78bfa]',
-                    },
-                    drawing: {
-                      title: 'Creative Canvas',
-                      icon: <PenTool size={24} fill="currentColor" />,
-                      color: 'bg-[#fbbf24]',
-                      text: 'text-[#fbbf24]',
-                    },
-                  }[testId];
-                  return (
-                    <div
-                      key={testId}
-                      className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border-2 border-gray-100"
-                    >
-                      <div
-                        className={`w-12 h-12 rounded-full ${details.color} flex items-center justify-center text-white`}
-                      >
-                        {details.icon}
-                      </div>
-                      <div className="text-left flex-1 flex items-center justify-between">
-                        <div>
-                          <p className="font-black text-gray-400 text-xs uppercase tracking-wider">Test {index + 1}</p>
-                          <p className={`font-black text-lg ${details.text}`}>{details.title}</p>
-                        </div>
-                        {testId !== 'drawing' && (
-                          <span className="text-xs font-black text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 uppercase tracking-wider shadow-sm">
-                            {testDifficulties[testId]}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <button
-                onClick={() => setHasStartedDaily(true)}
-                className={`w-full ${THEME.primaryYellow} ${THEME.textBlack} font-black py-4 px-6 rounded-full ${THEME.primaryYellowHover} transition-all hover:scale-105 shadow-sm text-xl flex items-center justify-center gap-2`}
-              >
-                Start <Play size={20} fill="currentColor" />
-              </button>
-            </div>
-          ) : (
+          {currentGameId && (
             <>
               {currentGameId === 'memory' && (
                 <MemoryGame key={`memory-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
+              )}
+              {currentGameId === 'visual_sequence' && (
+                <VisualSequenceGame
+                  key={`vseq-${currentTestIndex}`}
+                  difficulty={currentDifficulty}
+                  onFinish={handleFinish}
+                />
               )}
               {currentGameId === 'reaction' && (
                 <ReactionGame
@@ -528,8 +568,22 @@ const GamePlay = () => {
                   onFinish={handleFinish}
                 />
               )}
+              {currentGameId === 'light_reaction' && (
+                <LightReactionGame
+                  key={`lreact-${currentTestIndex}`}
+                  difficulty={currentDifficulty}
+                  onFinish={handleFinish}
+                />
+              )}
               {currentGameId === 'color' && (
                 <ColorGame key={`color-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
+              )}
+              {currentGameId === 'color_sorting' && (
+                <ColorSortingGame
+                  key={`csort-${currentTestIndex}`}
+                  difficulty={currentDifficulty}
+                  onFinish={handleFinish}
+                />
               )}
               {currentGameId === 'hearing' && (
                 <HearingGame
@@ -537,6 +591,19 @@ const GamePlay = () => {
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
+              )}
+              {currentGameId === 'path_sound' && (
+                <PathSoundGame
+                  key={`psound-${currentTestIndex}`}
+                  difficulty={currentDifficulty}
+                  onFinish={handleFinish}
+                />
+              )}
+              {currentGameId === 'puzzle' && (
+                <PuzzleGame key={`puzzle-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
+              )}
+              {currentGameId === 'odd_one_out' && (
+                <OddOneOutGame key={`odd-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
               )}
               {currentGameId === 'drawing' && (
                 <DrawingGame key={`drawing-${currentTestIndex}`} onFinish={handleFinish} />
@@ -548,5 +615,3 @@ const GamePlay = () => {
     </div>
   );
 };
-
-export default GamePlay;

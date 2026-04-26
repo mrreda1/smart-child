@@ -1,28 +1,34 @@
 const { StatusCodes } = require('http-status-codes');
 const AppError = require('./../utils/appError');
-const files = require('../utils/files');
 
-const handleCastErrorDB = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}.`;
-  return new AppError(message, StatusCodes.BAD_REQUEST);
-};
+const handleCastErrorDB = (err) => new AppError(`Invalid ${err.path}: ${err.value}.`, StatusCodes.BAD_REQUEST);
 
 const handleDuplicateKeyNameDB = (err) => {
   const value = Object.values(err.keyValue)[0];
-  const message = `Duplicate field value '${value}'.`;
-
-  return new AppError(message, StatusCodes.BAD_REQUEST);
+  return new AppError(`Duplicate field value '${value}'.`, StatusCodes.BAD_REQUEST);
 };
 
-const handleFileLimitError = (err) => {
-  return new AppError(
-    `Maximum file size is ${process.env.MAX_FILE_SIZE_MB}mb`,
-    StatusCodes.BAD_REQUEST,
-  );
-};
+const handleFileLimitError = () =>
+  new AppError(`Maximum file size is ${process.env.MAX_FILE_SIZE_MB}mb`, StatusCodes.BAD_REQUEST);
 
-const handleValidationErrorDB = (err) => {
-  return new AppError(err.message, StatusCodes.BAD_REQUEST);
+const handleValidationErrorDB = (err) => new AppError(err.message, StatusCodes.BAD_REQUEST);
+
+const handleJWTError = () => new AppError('Invalid token. Please log in again!', StatusCodes.UNAUTHORIZED);
+
+const handleTokenExpiredError = () => new AppError('Session expired. Please log in again!', StatusCodes.UNAUTHORIZED);
+
+const errorHandlers = [
+  { predicate: (e) => e.name === 'CastError', handler: handleCastErrorDB },
+  { predicate: (e) => e.code === 11000, handler: handleDuplicateKeyNameDB },
+  { predicate: (e) => e.code === 'LIMIT_FILE_SIZE', handler: handleFileLimitError },
+  { predicate: (e) => e.name === 'ValidationError', handler: handleValidationErrorDB },
+  { predicate: (e) => e.name === 'JsonWebTokenError', handler: handleJWTError },
+  { predicate: (e) => e.name === 'TokenExpiredError', handler: handleTokenExpiredError },
+];
+
+const simplifyError = (err) => {
+  const match = errorHandlers.find(({ predicate }) => predicate(err));
+  return match ? match.handler(err) : err;
 };
 
 const sendErrDev = (err, res) => {
@@ -42,41 +48,11 @@ const sendErrProd = (err, res) => {
     });
   } else {
     console.error(err);
-
     res.status(err.statusCode).json({
       status: err.status,
       message: 'Something went wrong!',
     });
   }
-};
-
-const handleJWTError = (err) =>
-  new AppError('Invalid token. Please log in again!', StatusCodes.UNAUTHORIZED);
-
-const simplifyError = (err) => {
-  const duplicateKeyErrorCodeDB = 11000;
-  if (err.name === 'CastError') {
-    return handleCastErrorDB(err);
-  }
-  if (err.code === duplicateKeyErrorCodeDB) {
-    return handleDuplicateKeyNameDB(err);
-  }
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    return handleFileLimitError(err);
-  }
-  if (err.name === 'ValidationError') {
-    return handleValidationErrorDB(err);
-  }
-  if (err.name === 'JsonWebTokenError') {
-    return handleJWTError(err);
-  }
-  if (err.name === 'TokenExpiredError') {
-    return new AppError(
-      'Session expired. Please log in again!',
-      StatusCodes.UNAUTHORIZED,
-    );
-  }
-  return err;
 };
 
 module.exports = async (err, req, res, next) => {

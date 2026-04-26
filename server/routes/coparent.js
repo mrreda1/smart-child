@@ -21,6 +21,7 @@ router.patch(
   tokenMiddleware.resolveCoparentToken((req) => req.params.token),
   parentChildMiddleware.checkParentChildLink((req) => req.pendingLink.child_id),
   parentChildMiddleware.checkParentChildOwnership((req) => req.parentChildLink),
+  coparentController.populateCoparentRequestData,
   coparentController.replyCoParentAcess,
 );
 

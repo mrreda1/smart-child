@@ -1,23 +1,20 @@
-const catchAsync = require('./catchAsync');
 const nodemailer = require('nodemailer');
 const passwordResetTemplate = require('./../utils/templates/email-reset');
 const emailVerificationTemplate = require('./../utils/templates/email-verification');
 const { childLinkRequestTemplate } = require('./templates/child-link-request');
-const AppError = require('./appError');
-const { StatusCodes } = require('http-status-codes/build/cjs');
 const { acceptedTemplate, deniedTemplate } = require('./templates/coparent-reply');
 
-const sendEmail = async (options) => {
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_APP_PASSWORD,
+  },
+});
 
+const sendEmail = async (options) => {
   await transporter.sendMail({
     from: '"Smart Child" <smartchildorg@gmail.com>',
     to: options.recipientsEmail,
