@@ -32,13 +32,17 @@ export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
     if (timeLeft <= 0 && isPlaying && !hasFinished) {
       setIsPlaying(false);
       setHasFinished(true);
-      const pi = totalSelections === 0 ? '0.0' : ((successfulHits / totalSelections) * 100).toFixed(1);
+
+      const totalBugsSpawned = Math.max(1, bugId);
+      const pi = ((successfulHits / totalBugsSpawned) * 100).toFixed(1);
+
       const mrt = successfulHits === 0 ? '0' : (sumResponseTime / successfulHits).toFixed(0);
       onFinish(successfulHits * 10, {
         mrt,
         pi,
         rawData: {
           successfulHits: successfulHits,
+          totalBugsSpawned: totalBugsSpawned,
           totalSelections: totalSelections,
           sumOfResponseTimesMs: sumResponseTime,
         },
@@ -125,7 +129,7 @@ export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
       <button
         onPointerDown={handleBugTap}
         style={{ top: position.top, left: position.left, transform: 'translate(-50%, -50%)' }}
-        className={`absolute ${bugSizeClass} bg-[#ff5e5e] rounded-full flex items-center justify-center shadow-lg active:scale-75 transition-transform transform-gpu will-change-transform select-none [-webkit-tap-highlight-color:transparent]`}
+        className={`absolute ${bugSizeClass} cursor-crosshai bg-[#ff5e5e] rounded-full flex items-center justify-center shadow-lg active:scale-75 transition-transform transform-gpu will-change-transform select-none [-webkit-tap-highlight-color:transparent]`}
       >
         <Bug size={bugIconSize} className="text-white pointer-events-none" />
       </button>
