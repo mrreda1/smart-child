@@ -1,4 +1,4 @@
-import { getTestsDesc } from '@/services/testService';
+import { getTestsDesc, getTests } from '@/services/testService';
 import { useQuery } from '@tanstack/react-query';
 
 const useGetTestsConfig = () =>
@@ -8,4 +8,11 @@ const useGetTestsConfig = () =>
     staleTime: Infinity,
   });
 
-export { useGetTestsConfig };
+const useGetTests = () =>
+  useQuery({
+    queryFn: getTests,
+    queryKey: ['tests'],
+    staleTime: Infinity,
+  });
+
+export { useGetTestsConfig, useGetTests };

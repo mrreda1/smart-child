@@ -56,6 +56,7 @@ export const GamePlay = () => {
   const [isFetchingConfig, setIsFetchingConfig] = useState(mode === 'daily');
 
   const currentGameId = mode === 'daily' ? testQueue[currentTestIndex] : state.gameId;
+
   const difficultyRef = useRef(
     mode === 'daily' ? testDifficulties[currentGameId] || 'easy' : state.difficulty || 'easy',
   );
@@ -78,30 +79,24 @@ export const GamePlay = () => {
           setIsFetchingConfig(true);
           // ======================================================================
           // 🚀 API CALL LOCATION (DAILY ASSESSMENT QUEUE & DIFFICULTIES)
-          // Fetch the specific tests assigned for today AND their difficulties.
-          // Example:
-          // const response = await fetch('/api/assessments/current');
-          // const assessmentData = await response.json();
-          // setTestDifficulties(assessmentData.assignedDifficulties);
-          // setTestQueue(assessmentData.testQueue);
           // ======================================================================
 
           await new Promise((resolve) => setTimeout(resolve, 1500));
 
-          // Mock fallback logic if no queue is passed down from API for UI preview purposes
+          // Mock fallback logic updated with new DB names
           if (testQueue.length === 0) {
             setTestQueue([
-              'memory',
-              'visual_sequence',
-              'reaction',
-              'light_reaction',
-              'color',
-              'color_sorting',
-              'hearing',
-              'path_sound',
-              'puzzle',
-              'odd_one_out',
-              'drawing',
+              'Matching',
+              'visual Sequence',
+              'Bug Catch',
+              'Light Reaction',
+              'Colors Identification',
+              'Color Sorting',
+              'Sound Identification',
+              'Path Sound',
+              'Puzzle',
+              'Odd One Out',
+              'Drawing',
             ]);
           }
         } catch (error) {
@@ -116,17 +111,17 @@ export const GamePlay = () => {
   }, [mode, setTestDifficulties]);
 
   const TEST_DETAILS = {
-    memory: { title: 'Memory Match', icon: Brain, bg: 'bg-green-100', text: 'text-green-500' },
-    visual_sequence: { title: 'Visual Sequence', icon: Layers, bg: 'bg-green-100', text: 'text-green-500' },
-    reaction: { title: 'Reaction Bug', icon: Hand, bg: 'bg-red-100', text: 'text-red-500' },
-    light_reaction: { title: 'Light Reaction', icon: Zap, bg: 'bg-red-100', text: 'text-red-500' },
-    color: { title: 'Color Explorer', icon: Palette, bg: 'bg-blue-100', text: 'text-blue-500' },
-    color_sorting: { title: 'Color Sorting', icon: Archive, bg: 'bg-blue-100', text: 'text-blue-500' },
-    hearing: { title: 'Sound Explorer', icon: Ear, bg: 'bg-purple-100', text: 'text-purple-500' },
-    path_sound: { title: 'Path Sound', icon: Music, bg: 'bg-purple-100', text: 'text-purple-500' },
-    puzzle: { title: 'Puzzle Maker', icon: Puzzle, bg: 'bg-pink-100', text: 'text-pink-500' },
-    odd_one_out: { title: 'Odd One Out', icon: Search, bg: 'bg-pink-100', text: 'text-pink-500' },
-    drawing: { title: 'Creative Canvas', icon: PenTool, bg: 'bg-yellow-100', text: 'text-yellow-500' },
+    Matching: { title: 'Memory Match', icon: Brain, bg: 'bg-green-100', text: 'text-green-500' },
+    'visual Sequence': { title: 'Visual Sequence', icon: Layers, bg: 'bg-green-100', text: 'text-green-500' },
+    'Bug Catch': { title: 'Reaction Bug', icon: Hand, bg: 'bg-red-100', text: 'text-red-500' },
+    'Light Reaction': { title: 'Light Reaction', icon: Zap, bg: 'bg-red-100', text: 'text-red-500' },
+    'Colors Identification': { title: 'Color Explorer', icon: Palette, bg: 'bg-blue-100', text: 'text-blue-500' },
+    'Color Sorting': { title: 'Color Sorting', icon: Archive, bg: 'bg-blue-100', text: 'text-blue-500' },
+    'Sound Identification': { title: 'Sound Explorer', icon: Ear, bg: 'bg-purple-100', text: 'text-purple-500' },
+    'Path Sound': { title: 'Path Sound', icon: Music, bg: 'bg-purple-100', text: 'text-purple-500' },
+    Puzzle: { title: 'Puzzle Maker', icon: Puzzle, bg: 'bg-pink-100', text: 'text-pink-500' },
+    'Odd One Out': { title: 'Odd One Out', icon: Search, bg: 'bg-pink-100', text: 'text-pink-500' },
+    Drawing: { title: 'Creative Canvas', icon: PenTool, bg: 'bg-yellow-100', text: 'text-yellow-500' },
   };
 
   const gameDetails = currentGameId ? TEST_DETAILS[currentGameId] : null;
@@ -188,7 +183,7 @@ export const GamePlay = () => {
       const newSessionTotal = sessionStarsEarned + starDelta;
       setSessionStarsEarned(newSessionTotal);
 
-      if (currentGameId !== 'drawing') {
+      if (currentGameId !== 'Drawing') {
         setTestDifficulties((prev) => {
           const diff = prev[currentGameId];
           let newDiff = diff;
@@ -206,19 +201,6 @@ export const GamePlay = () => {
       const updatedResults = { ...dailyResults, [currentGameId]: { rawData: metrics } };
       setDailyResults(updatedResults);
 
-      // ======================================================================
-      // 🚀 API CALL LOCATION (PER TEST IN DAILY MODE)
-      // Make your API call here to pass the raw data of the finished test to your server!
-      // Example:
-      // await submitTestResultToServer({
-      //   gameId: currentGameId,
-      //   difficulty: currentDifficulty,
-      //   metrics: metrics
-      // });
-      // ======================================================================
-
-      console.log(metrics);
-
       if (currentTestIndex < testQueue.length - 1) {
         setTimeout(
           () => {
@@ -232,13 +214,6 @@ export const GamePlay = () => {
         const endDailySequence = () => {
           setGlobalStars((prev) => Math.max(0, prev + newSessionTotal));
           setGameOver(true);
-
-          // ==================================================================
-          // 🚀 OPTIONAL API CALL LOCATION (END OF DAILY SEQUENCE)
-          // If you prefer to submit all results at once when the sequence is fully done, do it here.
-          // Example:
-          // await submitCompleteSessionToServer({ allResults: updatedResults });
-          // ==================================================================
         };
         setTimeout(
           () => {
@@ -485,6 +460,9 @@ export const GamePlay = () => {
           >
             {testQueue.map((testId, index) => {
               const details = TEST_DETAILS[testId];
+              // Fallback in case a key doesn't exactly match
+              if (!details) return null;
+
               const TestIcon = details.icon;
               return (
                 <div
@@ -496,7 +474,7 @@ export const GamePlay = () => {
                   >
                     <TestIcon
                       size={24}
-                      fill={testId !== 'odd_one_out' && testId !== 'drawing' ? 'currentColor' : 'none'}
+                      fill={testId !== 'Odd One Out' && testId !== 'Drawing' ? 'currentColor' : 'none'}
                     />
                   </div>
                   <div className="text-left flex-1 flex items-center justify-between">
@@ -504,7 +482,7 @@ export const GamePlay = () => {
                       <p className="font-black text-gray-400 text-[10px] uppercase tracking-wider">Test {index + 1}</p>
                       <p className={`font-black text-lg ${details.text}`}>{details.title}</p>
                     </div>
-                    {testId !== 'drawing' && (
+                    {testId !== 'Drawing' && (
                       <span className="text-[10px] font-black text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 uppercase tracking-wider">
                         {testDifficulties[testId] || 'EASY'}
                       </span>
@@ -539,7 +517,7 @@ export const GamePlay = () => {
           <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {mode === 'daily'
               ? `Test ${currentTestIndex + 1}/${testQueue.length} : ${gameDetails?.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`
-              : currentGameId === 'drawing'
+              : currentGameId === 'Drawing'
                 ? gameDetails?.title
                 : `${gameDetails?.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`}
           </div>
@@ -551,61 +529,62 @@ export const GamePlay = () => {
         <div className="flex-1 flex items-center justify-center">
           {currentGameId && (
             <>
-              {currentGameId === 'memory' && (
+              {/* Components rendered conditionally based on the new explicit names */}
+              {currentGameId === 'Matching' && (
                 <MemoryGame key={`memory-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
               )}
-              {currentGameId === 'visual_sequence' && (
+              {currentGameId === 'visual Sequence' && (
                 <VisualSequenceGame
                   key={`vseq-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'reaction' && (
+              {currentGameId === 'Bug Catch' && (
                 <ReactionGame
                   key={`reaction-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'light_reaction' && (
+              {currentGameId === 'Light Reaction' && (
                 <LightReactionGame
                   key={`lreact-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'color' && (
+              {currentGameId === 'Colors Identification' && (
                 <ColorGame key={`color-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
               )}
-              {currentGameId === 'color_sorting' && (
+              {currentGameId === 'Color Sorting' && (
                 <ColorSortingGame
                   key={`csort-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'hearing' && (
+              {currentGameId === 'Sound Identification' && (
                 <HearingGame
                   key={`hearing-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'path_sound' && (
+              {currentGameId === 'Path Sound' && (
                 <PathSoundGame
                   key={`psound-${currentTestIndex}`}
                   difficulty={currentDifficulty}
                   onFinish={handleFinish}
                 />
               )}
-              {currentGameId === 'puzzle' && (
+              {currentGameId === 'Puzzle' && (
                 <PuzzleGame key={`puzzle-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
               )}
-              {currentGameId === 'odd_one_out' && (
+              {currentGameId === 'Odd One Out' && (
                 <OddOneOutGame key={`odd-${currentTestIndex}`} difficulty={currentDifficulty} onFinish={handleFinish} />
               )}
-              {currentGameId === 'drawing' && (
+              {currentGameId === 'Drawing' && (
                 <DrawingGame key={`drawing-${currentTestIndex}`} onFinish={handleFinish} />
               )}
             </>
