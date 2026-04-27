@@ -22,16 +22,20 @@ const seedDatabase = async () => {
 
     console.log('Seeding new config data...');
 
-    for (const [categoryName, testNames] of Object.entries(categoryMap)) {
-      const category = await Category.create({ name: categoryName });
+    for (const categoryData of categoryMap) {
+      const category = await Category.create({
+        name: categoryData.title,
+        description: categoryData.description,
+      });
 
-      for (const testName of testNames) {
+      for (const testData of categoryData.tests) {
         const test = await Test.create({
-          name: testName,
+          name: testData.title,
+          description: testData.description,
           category_id: category._id,
         });
 
-        const testConfigData = testsDescription[testName];
+        const testConfigData = testsDescription[testData.title];
 
         const descriptions = ['easy', 'medium', 'hard'].map((difficulty) => ({
           test_id: test._id,
@@ -44,7 +48,6 @@ const seedDatabase = async () => {
     }
 
     console.log('Database seeded successfully!');
-
     process.exit(0);
   } catch (error) {
     console.error('Error seeding database:', error);

@@ -6,7 +6,7 @@ const catchAsync = require('../utils/catchAsync');
 const getTests = factoryHandler.getMany(Test);
 
 const getTestsDescription = catchAsync(async (req, res, next) => {
-  const testsDescription = await Test.find().populate({ path: 'descriptions' });
+  const testsDescription = await Test.find().populate({ path: 'descriptions' }).select('-description');
 
   res.json({ results: testsDescription.length, data: testsDescription });
 });

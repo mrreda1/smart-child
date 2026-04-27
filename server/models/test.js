@@ -5,6 +5,7 @@ const TestDescModel = require('./testDesc');
 
 const testSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
+  description: { type: String, required: true },
   category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
 });
 
@@ -13,7 +14,9 @@ testSchema.set('toObject', { virtuals: true });
 testSchema.set('toJSON', {
   virtuals: true,
   transform: function (doc, ret) {
-    ret.category = ret.category_id.name;
+    const { name, description } = ret.category_id || {};
+
+    ret.category = { name, description };
 
     delete ret.category_id;
     delete ret._id;
@@ -28,7 +31,7 @@ testSchema.virtual('descriptions', {
 });
 
 testSchema.pre(/^find/, function (next) {
-  this.populate({ path: 'category_id', select: 'name' });
+  this.populate({ path: 'category_id' });
   next();
 });
 

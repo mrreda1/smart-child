@@ -1,16 +1,50 @@
-const categoryMap = {
-  Memory: ['Matching', 'visual Sequence'],
-
-  'Reaction Speed': ['Bug Catch', 'Light Reaction'],
-
-  'Color Explore': ['Colors Identification', 'Color Sorting'],
-
-  Hearing: ['Sound Identification', 'Path Sound'],
-
-  IQ: ['Puzzle', 'Odd One Out'],
-
-  Art: ['Drawing'],
-};
+const categoryMap = [
+  {
+    title: 'Memory',
+    description: 'Matching & Sequencing',
+    tests: [
+      { title: 'Matching', description: 'Find hidden pairs' },
+      { title: 'visual Sequence', description: 'Repeat the pattern' },
+    ],
+  },
+  {
+    title: 'Reaction Speed',
+    description: 'Speed & Reflexes',
+    tests: [
+      { title: 'Bug Catch', description: 'Tap bug fast' },
+      { title: 'Light Reaction', description: 'Tap on green light' },
+    ],
+  },
+  {
+    title: 'Color Explore',
+    description: 'Recognition & Sorting',
+    tests: [
+      { title: 'Colors Identification', description: 'Find shapes in color' },
+      { title: 'Color Sorting', description: 'Sort colors in bins' },
+    ],
+  },
+  {
+    title: 'Hearing',
+    description: 'Sound & Path Matching',
+    tests: [
+      { title: 'Sound Identification', description: 'Match the sounds' },
+      { title: 'Path Sound', description: 'Follow the sounds' },
+    ],
+  },
+  {
+    title: 'IQ',
+    description: 'Puzzles & Logic',
+    tests: [
+      { title: 'Puzzle', description: 'Solve image puzzle' },
+      { title: 'Odd One Out', description: 'Find the different one' },
+    ],
+  },
+  {
+    title: 'Art',
+    description: 'Creative Canvas',
+    tests: [{ title: 'Drawing', description: 'Draw pictures' }],
+  },
+];
 
 const testsDescription = {
   Matching: { easy: { targetPairs: 3 }, medium: { targetPairs: 6 }, hard: { targetPairs: 8 } },
