@@ -13,6 +13,8 @@ const setupMiddlewares = require(`${__dirname}/utils/middlewares`);
 const express = require('express');
 const { cleanupReqFile } = require('./middlewares/cleanupReqFile');
 
+require('./models/index');
+
 const APIVersion = '1';
 const app = express();
 
