@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetTestsConfig } from '@/hooks/test';
+import { useGetAssignedAssessment } from '@/hooks/assessment';
 
 const ChildDashboard = () => {
   const navigate = useNavigate();
@@ -31,13 +32,26 @@ const ChildDashboard = () => {
   const childProfile = childQuery.data;
 
   const testConfigQuery = useGetTestsConfig();
+  const assignedAssessmentQuery = useGetAssignedAssessment();
 
   useEffect(() => {
+    if (!assignedAssessmentQuery.data) return;
+
+    const assessment = assignedAssessmentQuery.data;
+
+    const assessmentActiveTime = new Date(assessment.active_in);
+
+    let timer;
+
     const calculateTimeLeft = () => {
       const now = new Date();
-      const midnight = new Date(now);
-      midnight.setHours(24, 0, 0, 0);
-      const diff = midnight - now;
+      const diff = assessmentActiveTime - now;
+
+      if (diff < 0) {
+        clearInterval(timer);
+        return setIsTestLocked(false);
+      }
+
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / 1000 / 60) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
@@ -46,17 +60,20 @@ const ChildDashboard = () => {
       );
     };
     calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
+
+    timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [assignedAssessmentQuery.data]);
 
   const handleExit = (data) => {
     switchToParentMutation.mutate(data);
   };
 
+  const isLoading = childQuery.isSuccess && testConfigQuery.isSuccess && assignedAssessmentQuery.isSuccess;
+
   return (
     <div className={`flex flex-column min-h-screen ${THEME.bgBeige} font-sans relative overflow-hidden`}>
-      {!(childQuery.isSuccess && testConfigQuery.isSuccess) ? (
+      {!isLoading ? (
         <GamifiedLoader />
       ) : (
         <div className="relative flex-1 z-10 max-w-4xl mx-auto p-6 py-10 flex flex-col min-h-screen">
@@ -93,8 +110,8 @@ const ChildDashboard = () => {
               disabled={isTestLocked}
               onClick={() =>
                 !isTestLocked &&
-                navigate('/child/game', {
-                  state: { mode: 'daily' },
+                navigate('/child/daily-play', {
+                  state: { assessment: assignedAssessmentQuery.data },
                 })
               }
               className={`${isTestLocked ? 'bg-gray-300 border-gray-400 cursor-not-allowed' : 'bg-[#ff6b6b] border-[#e65a5a] hover:-translate-y-2'} text-white p-10 rounded-[2.5rem] shadow-sm transition-all flex flex-col items-center justify-center text-center group border-b-8`}

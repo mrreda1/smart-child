@@ -75,12 +75,11 @@ export const FreePlayMenu = () => {
         });
       }
 
-      // Add the test to the corresponding category array
       gamesByCat[catName].push({
-        id: test.id, // The API ID used for routing/game fetching
+        id: test.id,
         title: test.name,
         desc: test.description,
-        icon: GAME_ICONS[test.name] || Star, // fallback icon
+        icon: GAME_ICONS[test.name] || Star,
       });
     });
 
@@ -153,9 +152,7 @@ export const FreePlayMenu = () => {
                   return (
                     <button
                       key={game.id}
-                      onClick={() =>
-                        navigate('/child/game', { state: { mode: 'free', gameId: game.title, difficulty } })
-                      }
+                      onClick={() => navigate('/child/free-play-game', { state: { gameId: game.title, difficulty } })}
                       className={`${activeCatDetails.color} text-white p-6 rounded-[2rem] shadow-sm hover:-translate-y-2 transition-all flex flex-col items-center text-center border-b-8 ${activeCatDetails.border}`}
                     >
                       <div className="bg-white/20 p-4 rounded-full mb-4">

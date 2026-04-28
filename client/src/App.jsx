@@ -11,8 +11,6 @@ import { AppContextProvider } from './context/AppContext';
 import LandingPage from './views/LandingPage';
 import ParentDashboard from './views/Dashboards/ParentDashboard';
 import ChildDashboard from './views/Dashboards/ChildDashboard';
-import { FreePlayMenu } from './views/Games/FreePlayMenu';
-import { GamePlay } from './views/Games/GamePlay';
 import ReportsDashboard from './views/Dashboards/ReportsDashboard';
 import AuthLayoutWrapper from './layouts/AuthLayout';
 import Login from './views/Auth/Login';
@@ -30,6 +28,10 @@ import { ProtecteRoute } from './components/auth/ProtectRoute';
 import { BlockChildRoute } from './components/auth/BlockChildRoute';
 import { GuestRoute } from './components/auth/GuestRoute';
 import { JwtProvider } from './context/JwtProvider';
+
+import { FreePlayMenu } from './views/Games/FreePlayMenu';
+import { FreePlay } from './views/Games/freePlay';
+import { DailyPlay } from './views/Games/DailyPlay';
 
 const basename = import.meta.env.VITE_URL_BASENAME;
 
@@ -78,7 +80,8 @@ export default function App() {
                 <Route path="/child">
                   <Route path="dashboard" element={<ChildDashboard />} />
                   <Route path="free-play" element={<FreePlayMenu />} />
-                  <Route path="game" element={<GamePlay />} />
+                  <Route path="free-play-game" element={<FreePlay />} />
+                  <Route path="daily-play" element={<DailyPlay />} />
                 </Route>
               </Route>
 

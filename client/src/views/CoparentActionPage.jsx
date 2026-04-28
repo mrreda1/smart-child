@@ -9,6 +9,7 @@ const CoparentActionPage = () => {
   const { token } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   const action = searchParams.get('action');
 
   const replyCoparentMutation = useReplyCoparent();
