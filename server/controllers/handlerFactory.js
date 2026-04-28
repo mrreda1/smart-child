@@ -18,7 +18,7 @@ exports.createOne = (Model) =>
     });
   });
 
-exports.updateOne = (Model, sendResponse = true) =>
+exports.updateOne = (Model, { sendResponse = true, allowedFields = ['name', 'age', 'gender', 'photo'] } = {}) =>
   catchAsync(async (req, res, next) => {
     const id = req.params.id;
 
@@ -34,7 +34,7 @@ exports.updateOne = (Model, sendResponse = true) =>
 
     req[`old${capitalizedName}`] = doc.toObject();
 
-    const filteredBody = filterObj(req.body, 'name', 'age', 'gender', 'photo');
+    const filteredBody = filterObj(req.body, ...allowedFields);
 
     Object.keys(filteredBody).forEach((key) => {
       doc[key] = req.body[key];
