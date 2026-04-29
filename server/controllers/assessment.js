@@ -5,6 +5,7 @@ const AssessmentModel = require('../models/assessment');
 const AssessmentTestModel = require('../models/assessmentTest');
 
 const AppError = require('../utils/appError');
+const assessmentTest = require('../models/assessmentTest');
 
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
   const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ created_at: -1 });
@@ -30,6 +31,24 @@ const getAssessmentTests = catchAsync(async (req, res, next) => {
 });
 
 const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
+  if (req.assessmentTest.isCompleted) throw new AppError('You have completed this test', StatusCodes.CONFLICT);
+
+  if (req.file) return await handleDrawingTestResult(req, res, next);
+  else return await handleTestsResult(req, res, next);
+});
+
+const handleDrawingTestResult = async (req, res, next) => {
+  const assessmentTest = req.assessmentTest;
+
+  assessmentTest.rawData = { image: req.file.filename };
+  assessmentTest.isCompleted = true;
+
+  await assessmentTest.save();
+
+  res.sendStatus(StatusCodes.OK);
+};
+
+const handleTestsResult = async (req, res, next) => {
   const assessmentTest = req.assessmentTest;
 
   if (Object.keys(req.body).length === 0) throw new AppError('Test results cannot be empty.', StatusCodes.BAD_REQUEST);
@@ -38,14 +57,12 @@ const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
 
   if (emptyProperty) throw new AppError("Test results shoudn't have empty data", StatusCodes.BAD_REQUEST);
 
-  if (assessmentTest.isCompleted) throw new AppError('You have completed this test', StatusCodes.CONFLICT);
-
   assessmentTest.rawData = req.body;
   assessmentTest.isCompleted = true;
 
   await assessmentTest.save();
 
   res.sendStatus(StatusCodes.OK);
-});
+};
 
 module.exports = { getAssignedAssessment, getAssessmentTests, storeAsessmentTestResult };

@@ -88,10 +88,7 @@ const sendUpdateResponse = async (req, res, next) => {
 const deleteChild = handlerFactory.deleteOne(ChildModel, false);
 
 const sendDeleteResponse = async (req, res, next) => {
-  res.status(StatusCodes.NO_CONTENT).json({
-    status: 'success',
-    data: null,
-  });
+  res.sendStatus(StatusCodes.NO_CONTENT);
 };
 
 module.exports = {

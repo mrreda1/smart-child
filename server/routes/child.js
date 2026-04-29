@@ -42,6 +42,6 @@ router
     cleanupOldFile('child', 'photo'),
     childController.sendUpdateResponse,
   )
-  .delete(childController.deleteChild, childController.sendDeleteResponse);
+  .delete(childController.deleteChild, cleanupOldFile('child', 'photo'), childController.sendDeleteResponse);
 
 module.exports = router;
