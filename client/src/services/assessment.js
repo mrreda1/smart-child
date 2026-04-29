@@ -14,4 +14,10 @@ const getAssessmentTests = async ({ assessmentId }) => {
   return res.data.assessmentTests;
 };
 
-export { getAssignedAssessment, getAssessmentTests };
+const saveTestResults = async ({ assessmentTestId, rawData }) => {
+  return await apiClient.post(`${assessmentStartEndpoint}/test/${assessmentTestId}`, rawData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+export { getAssignedAssessment, getAssessmentTests, saveTestResults };

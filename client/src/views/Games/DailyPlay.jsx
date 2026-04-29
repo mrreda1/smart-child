@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
-import { useGetAssessmentTests } from '@/hooks/assessment';
+import { useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
 
 export const DailyPlay = () => {
   const navigate = useNavigate();
@@ -20,6 +20,8 @@ export const DailyPlay = () => {
   const { globalStars, setGlobalStars } = useAppContext();
 
   const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: 0, refetchOnMount: true });
+
+  const saveTestResMutation = useSaveTestResults();
 
   const assessmentTests = assessmentTestQuery.data || [];
 
@@ -36,8 +38,21 @@ export const DailyPlay = () => {
   const currentDifficulty = currentAssessTestObj?.difficulty || 'easy';
   const gameDetails = currentGameName ? TEST_DETAILS[currentGameName] : null;
 
+  const handleSubmitTest = (metrics) => {
+    const formData = new FormData();
+
+    const { id: assessmentTestId } = currentAssessTestObj;
+
+    if (currentAssessTestObj.test.name === 'Drawing') formData.append('image', metrics.rawData.imageFile);
+    else formData.append('testData', JSON.stringify(metrics.rawData));
+
+    saveTestResMutation.mutateAsync({ assessmentTestId, rawData: formData }).catch((err) => {});
+  };
+
   const handleFinish = (score, metrics) => {
     const isGoodGame = evaluateGamePerformance(score, metrics);
+
+    handleSubmitTest(metrics);
 
     // Calculate Stars
     let starDelta = 0;
@@ -57,8 +72,6 @@ export const DailyPlay = () => {
     const newSessionTotal = sessionStarsEarned + starDelta;
     setSessionStarsEarned(newSessionTotal);
 
-    // Store the results using the unique ID from the database,
-    // this makes it super easy to submit a PUT/POST request to your backend later!
     if (currentAssessTestObj) {
       const updatedResults = {
         ...dailyResults,
@@ -67,7 +80,6 @@ export const DailyPlay = () => {
       setDailyResults(updatedResults);
     }
 
-    // Sequence advancement
     if (currentTestIndex < assessmentTests.length - 1) {
       setTimeout(
         () => {
@@ -117,15 +129,28 @@ export const DailyPlay = () => {
   }
 
   if (!hasStartedDaily) {
-    if (!assessmentTestQuery.isSuccess) {
+    if (assessmentTestQuery.isFetching || !assessmentTestQuery.isSuccess) {
       return (
         <div
-          className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col items-center justify-center p-6 relative select-none [-webkit-tap-highlight-color:transparent]`}
+          className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col p-4 md:p-6 select-none [-webkit-tap-highlight-color:transparent]`}
         >
-          <div className="bg-white p-10 rounded-[3rem] shadow-xl text-center max-w-sm w-full animate-pulse flex flex-col items-center">
-            <Loader2 className="w-16 h-16 text-yellow-400 animate-spin mb-6" />
-            <h2 className="text-2xl font-black text-gray-800">Preparing Assessment...</h2>
-            <p className="text-gray-500 font-bold text-sm mt-2">Loading today's challenges</p>
+          {/* Added Back Button Header */}
+          <div className="flex justify-between items-center w-full max-w-md mx-auto mb-6">
+            <button
+              onClick={() => navigate('/child/dashboard')}
+              className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-full shadow-sm font-bold text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
+            >
+              <ArrowLeft size={16} /> Back
+            </button>
+          </div>
+
+          {/* Centered Loading Card */}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-white p-10 rounded-[3rem] shadow-xl text-center max-w-sm w-full animate-pulse flex flex-col items-center">
+              <Loader2 className="w-16 h-16 text-yellow-400 animate-spin mb-6" />
+              <h2 className="text-2xl font-black text-gray-800">Preparing Assessment...</h2>
+              <p className="text-gray-500 font-bold text-sm mt-2">Loading today's challenges</p>
+            </div>
           </div>
         </div>
       );
@@ -236,7 +261,7 @@ export const DailyPlay = () => {
             <ArrowLeft size={18} /> Back
           </button>
           <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
-            {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title}`}
+            {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
           </div>
           <div className="bg-white px-4 py-2 rounded-full font-black text-lg flex items-center shadow-sm border-2 border-gray-100 text-gray-800">
             <Star size={18} className="mr-2 text-yellow-400 fill-yellow-400" /> {globalStars}

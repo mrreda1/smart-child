@@ -12,8 +12,6 @@ import { GameRenderer } from '@/components/common/GameRenderer';
 import { IS_DEV } from '@/constants/config';
 
 export const FreePlay = () => {
-  console.log('render');
-
   const navigate = useNavigate();
   const location = useLocation();
   const { globalStars } = useAppContext();
@@ -30,6 +28,8 @@ export const FreePlay = () => {
 
   const handleFinish = (score, metrics) => {
     const isGoodGame = evaluateGamePerformance(score, metrics);
+
+    console.log(metrics.rawData);
 
     setDevMetrics(metrics);
     setGameOver(true);

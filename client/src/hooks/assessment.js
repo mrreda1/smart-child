@@ -1,5 +1,5 @@
-import { getAssessmentTests, getAssignedAssessment } from '@/services/assessment';
-import { useQuery } from '@tanstack/react-query';
+import { getAssessmentTests, getAssignedAssessment, saveTestResults } from '@/services/assessment';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 const useGetAssignedAssessment = () =>
   useQuery({
@@ -8,10 +8,16 @@ const useGetAssignedAssessment = () =>
     staleTime: Infinity,
   });
 
-const useGetAssessmentTests = (assessmentId, queryConfig) =>
+const useGetAssessmentTests = (assessmentId, queryConfig = {}) =>
   useQuery({
     queryFn: () => getAssessmentTests({ assessmentId }),
     queryKey: ['assessmentTests', assessmentId],
+    ...queryConfig,
   });
 
-export { useGetAssignedAssessment, useGetAssessmentTests };
+const useSaveTestResults = () =>
+  useMutation({
+    mutationFn: saveTestResults,
+  });
+
+export { useGetAssignedAssessment, useGetAssessmentTests, useSaveTestResults };

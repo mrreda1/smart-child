@@ -30,7 +30,7 @@ import { GuestRoute } from './components/auth/GuestRoute';
 import { JwtProvider } from './context/JwtProvider';
 
 import { FreePlayMenu } from './views/Games/FreePlayMenu';
-import { FreePlay } from './views/Games/freePlay';
+import { FreePlay } from './views/Games/FreePlay';
 import { DailyPlay } from './views/Games/DailyPlay';
 
 const basename = import.meta.env.VITE_URL_BASENAME;

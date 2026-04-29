@@ -1,4 +1,5 @@
 import { SOUNDS } from '@/assets';
+import { compressImage } from '@/utils/image';
 import { playSound } from '@/utils/sound';
 import { Eraser, PenTool, Save, Trash2, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -102,15 +103,19 @@ export const DrawingGame = ({ onFinish }) => {
     }
   };
 
-  const handleDone = () => {
+  const handleDone = async () => {
     playSound(SOUNDS.match);
     if (!canvasRef.current) return;
-    canvasRef.current.toBlob((blob) => {
+
+    await canvasRef.current.toBlob(async (blob) => {
       if (!blob) return;
-      const imageFile = new File([blob], 'drawing-test.png', { type: 'image/png' });
+      let imageFile = new File([blob], 'drawing-test.png', { type: 'image/png' });
+
+      imageFile = await compressImage(imageFile, 2);
+
       onFinish(100, {
         type: 'drawing',
-        rawData: { imageFile: imageFile, imageBase64: canvasRef.current.toDataURL('image/png') },
+        rawData: { imageFile },
       });
     }, 'image/png');
   };
