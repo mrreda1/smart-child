@@ -51,6 +51,8 @@ const handleDrawingTestResult = async (req, res, next) => {
 const handleTestsResult = async (req, res, next) => {
   const assessmentTest = req.assessmentTest;
 
+  req.body = JSON.parse(req.body.testData);
+
   if (Object.keys(req.body).length === 0) throw new AppError('Test results cannot be empty.', StatusCodes.BAD_REQUEST);
 
   const emptyProperty = Object.values(req.body).some((val) => !val && val !== 0 && val !== false);
