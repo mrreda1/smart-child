@@ -2,6 +2,7 @@ const AppError = require('../utils/appError');
 const AssessmentTest = require('../models/assessmentTest');
 const catchAsync = require('../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes/build/cjs');
+const { AssessmentModel, AssessmentTestModel } = require('../models/index');
 
 const checkAssessmentTestAuthority = (extractAssessmentTestId) =>
   catchAsync(async (req, res, next) => {

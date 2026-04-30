@@ -160,4 +160,39 @@ const calculateStarDelta = (difficultyAction, currentDifficulty = 'easy', isDraw
   return isGoodGame ? winScores[level] : loseScores[level];
 };
 
-module.exports = { evaluateMetrices, calculateStarDelta };
+const calculateNewDifficulty = (prevDifficulty = 'easy', action = 'maintain') => {
+  const levels = ['easy', 'medium', 'hard'];
+  let currentIndex = Math.max(0, levels.indexOf(prevDifficulty));
+
+  if (action === 'level_up') currentIndex = Math.min(currentIndex + 1, 2);
+  if (action === 'level_down') currentIndex = Math.max(currentIndex - 1, 0);
+
+  return levels[currentIndex];
+};
+
+const buildAdaptiveTestsPayload = (allTests, previousTests, newAssessmentId) => {
+  const prevMap = previousTests.reduce((acc, test) => {
+    const testIdStr = test.test_id?._id?.toString() || test.test_id?.toString();
+    if (testIdStr) {
+      acc[testIdStr] = { difficulty: test.difficulty, action: test.results?.difficultyAction };
+    }
+    return acc;
+  }, {});
+
+  return allTests.map((test) => {
+    const prevTestInfo = prevMap[test._id.toString()];
+    const targetDifficulty = prevTestInfo
+      ? calculateNewDifficulty(prevTestInfo.difficulty, prevTestInfo.action)
+      : 'easy';
+
+    return {
+      assessment_id: newAssessmentId,
+      test_id: test._id,
+      difficulty: targetDifficulty,
+      isCompleted: false,
+      starsEarned: 0,
+    };
+  });
+};
+
+module.exports = { evaluateMetrices, calculateStarDelta, calculateNewDifficulty, buildAdaptiveTestsPayload };

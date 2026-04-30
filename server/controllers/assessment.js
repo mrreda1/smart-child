@@ -1,16 +1,14 @@
 const { StatusCodes } = require('http-status-codes/build/cjs');
 const catchAsync = require('../utils/catchAsync');
 
-const AssessmentModel = require('../models/assessment');
-const AssessmentTestModel = require('../models/assessmentTest');
-
 const AppError = require('../utils/appError');
-const assessmentTest = require('../models/assessmentTest');
 
-const { evaluateMetrices, calculateStarDelta } = require('../utils/test');
+const { evaluateMetrices, calculateStarDelta, buildAdaptiveTestsPayload } = require('../utils/test');
+
+const { AssessmentModel, AssessmentTestModel, TestModel } = require('../models/index');
 
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
-  const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ created_at: -1 });
+  const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ createdAt: -1 });
 
   if (!assignedAssessment) throw new AppError('No assessments found for this child.', StatusCodes.NOT_FOUND);
 
@@ -24,6 +22,43 @@ const getAssessmentTests = catchAsync(async (req, res, next) => {
   }).select('-assessment_id -rawData');
 
   res.json({ length: assessmentTests.length, data: { assessmentTests } });
+});
+
+const createAssessment = catchAsync(async (req, res, next) => {
+  const childId = req.child._id;
+
+  const [activeAssessment, allTests, lastCompletedAssessment] = await Promise.all([
+    AssessmentModel.findOne({ child_id: childId, status: 'in-progress' }).lean(),
+    TestModel.find().lean(),
+    AssessmentModel.findOne({ child_id: childId, status: 'completed' }).sort({ createdAt: -1 }).lean(),
+  ]);
+
+  if (activeAssessment) return new AppError('An assessment is already in progress.', StatusCodes.CONFLICT);
+
+  if (!allTests.length) return new AppError('No core tests found.', StatusCodes.INTERNAL_SERVER_ERROR);
+
+  const previousTests = lastCompletedAssessment
+    ? await AssessmentTestModel.find({ assessment_id: lastCompletedAssessment._id }).lean()
+    : [];
+
+  const now = new Date();
+
+  const newAssessment = await AssessmentModel.create({
+    child_id: childId,
+    status: 'in-progress',
+    active_in: now.getTime() + 24 * 60 * 60 * 1000,
+  });
+
+  const testsPayload = buildAdaptiveTestsPayload(allTests, previousTests, newAssessment._id);
+  const createdTests = await AssessmentTestModel.insertMany(testsPayload);
+
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    data: {
+      assessment: newAssessment,
+      tests: createdTests,
+    },
+  });
 });
 
 const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
@@ -104,4 +139,10 @@ const completeAssesment = catchAsync(async (req, res, next) => {
   res.json({ data: { TotalStarsEarned } });
 });
 
-module.exports = { getAssignedAssessment, getAssessmentTests, storeAsessmentTestResult, completeAssesment };
+module.exports = {
+  getAssignedAssessment,
+  getAssessmentTests,
+  storeAsessmentTestResult,
+  completeAssesment,
+  createAssessment,
+};
