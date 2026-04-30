@@ -28,6 +28,21 @@ const assessmentTestSchema = new mongoose.Schema({
   rawData: {
     type: mongoose.Schema.Types.Mixed,
   },
+  results: {
+    metrics: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+
+    difficultyAction: {
+      type: String,
+      enum: ['level_down', 'maintain', 'level_up'],
+    },
+  },
+
+  starsEarned: {
+    type: mongoose.Schema.Types.Number,
+    default: 0,
+  },
 });
 
 assessmentTestSchema.index({ assessment_id: 1, test_id: 1 }, { unique: true });

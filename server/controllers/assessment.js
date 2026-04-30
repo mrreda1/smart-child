@@ -7,6 +7,8 @@ const AssessmentTestModel = require('../models/assessmentTest');
 const AppError = require('../utils/appError');
 const assessmentTest = require('../models/assessmentTest');
 
+const { evaluateMetrices, calculateStarDelta } = require('../utils/test');
+
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
   const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ created_at: -1 });
 
@@ -16,16 +18,10 @@ const getAssignedAssessment = catchAsync(async (req, res, next) => {
 });
 
 const getAssessmentTests = catchAsync(async (req, res, next) => {
-  const { assessmentId } = req.params;
-
-  const assessment = await AssessmentModel.findOne({ _id: assessmentId, child_id: req.child._id });
-
-  if (!assessment)
-    throw new AppError(`Assessment With id: ${assessmentId} not found for this child.`, StatusCodes.NOT_FOUND);
-
-  const assessmentTests = await AssessmentTestModel.find({ assessment_id: assessment._id, isCompleted: false }).select(
-    '-assessment_id -rawData',
-  );
+  const assessmentTests = await AssessmentTestModel.find({
+    assessment_id: req.assessment._id,
+    isCompleted: false,
+  }).select('-assessment_id -rawData');
 
   res.json({ length: assessmentTests.length, data: { assessmentTests } });
 });
@@ -43,6 +39,12 @@ const handleDrawingTestResult = async (req, res, next) => {
   assessmentTest.rawData = { image: req.file.filename };
   assessmentTest.isCompleted = true;
 
+  assessmentTest.results = evaluateMetrices(assessmentTest);
+
+  const starDelta = calculateStarDelta(assessmentTest.results.difficultyAction, assessmentTest.difficulty, true);
+
+  assessmentTest.starsEarned = starDelta;
+
   await assessmentTest.save();
 
   res.sendStatus(StatusCodes.OK);
@@ -53,18 +55,53 @@ const handleTestsResult = async (req, res, next) => {
 
   req.body = JSON.parse(req.body.testData);
 
-  if (Object.keys(req.body).length === 0) throw new AppError('Test results cannot be empty.', StatusCodes.BAD_REQUEST);
+  if (Object.keys(req.body).length === 0) {
+    throw new AppError('Test results cannot be empty.', StatusCodes.BAD_REQUEST);
+  }
 
   const emptyProperty = Object.values(req.body).some((val) => !val && val !== 0 && val !== false);
 
-  if (emptyProperty) throw new AppError("Test results shoudn't have empty data", StatusCodes.BAD_REQUEST);
+  if (emptyProperty) {
+    throw new AppError("Test results shouldn't have empty data", StatusCodes.BAD_REQUEST);
+  }
 
   assessmentTest.rawData = req.body;
   assessmentTest.isCompleted = true;
+
+  assessmentTest.results = evaluateMetrices(assessmentTest);
+
+  const starDelta = calculateStarDelta(assessmentTest.results.difficultyAction, assessmentTest.difficulty);
+
+  assessmentTest.starsEarned = starDelta;
 
   await assessmentTest.save();
 
   res.sendStatus(StatusCodes.OK);
 };
+const completeAssesment = catchAsync(async (req, res, next) => {
+  const assessment = req.assessment;
+  const child = req.child;
 
-module.exports = { getAssignedAssessment, getAssessmentTests, storeAsessmentTestResult };
+  if (assessment.status === 'completed') throw new AppError('Assessment Is Already Completed', StatusCodes.CONFLICT);
+
+  const assessmentTests = await AssessmentTestModel.find({
+    assessment_id: req.assessment._id,
+  }).select('-assessment_id');
+
+  if (assessmentTests.length === 0) throw new AppError('No Tests Associated To This Assessment', StatusCodes.NOT_FOUND);
+
+  if (!assessmentTests.every((e) => e.isCompleted))
+    throw new AppError('All Tests Of That Assessment Should be Completed First', StatusCodes.CONFLICT);
+
+  const TotalStarsEarned = assessmentTests.reduce((acc, assessmentTest) => acc + assessmentTest.starsEarned, 0);
+
+  assessment.status = 'completed';
+  child.num_of_stars = Math.max(0, child.num_of_stars + TotalStarsEarned);
+
+  await assessment.save();
+  await child.save();
+
+  res.json({ data: { TotalStarsEarned } });
+});
+
+module.exports = { getAssignedAssessment, getAssessmentTests, storeAsessmentTestResult, completeAssesment };

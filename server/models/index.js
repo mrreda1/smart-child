@@ -1,25 +1,25 @@
-const Assessment = require('./assessment');
-const AssessmentTest = require('./assessmentTest');
-const Category = require('./category');
-const Child = require('./child');
-const DailyReport = require('./dailyReport');
-const OverallReport = require('./overallReport');
-const Parent = require('./parent');
-const ParentChild = require('./parentChild');
-const Test = require('./test');
-const TestDesc = require('./testDesc');
-const Token = require('./token');
+const AssessmentModel = require('./assessment');
+const AssessmentTestModel = require('./assessmentTest');
+const CategoryModel = require('./category');
+const ChildModel = require('./child');
+const DailyReportModel = require('./dailyReport');
+const OverallReportModel = require('./overallReport');
+const ParentModel = require('./parent');
+const ParentChildModel = require('./parentChild');
+const TestModel = require('./test');
+const TestDescModel = require('./testDesc');
+const TokenModel = require('./token');
 
 module.exports = {
-  Assessment,
-  AssessmentTest,
-  Category,
-  Child,
-  DailyReport,
-  OverallReport,
-  Parent,
-  ParentChild,
-  Test,
-  TestDesc,
-  Token,
+  AssessmentModel,
+  AssessmentTestModel,
+  CategoryModel,
+  ChildModel,
+  DailyReportModel,
+  OverallReportModel,
+  ParentModel,
+  ParentChildModel,
+  TestModel,
+  TestDescModel,
+  TokenModel,
 };
