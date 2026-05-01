@@ -17,7 +17,7 @@ import {
   Star,
   Zap,
 } from 'lucide-react';
-import { useGetTests } from '@/hooks/test';
+import { useGetTests, useGetTestsConfig } from '@/hooks/test';
 import GamifiedLoader from '@/components/common/GamifiedLoader';
 
 const CATEGORY_VISUALS = {
@@ -49,7 +49,11 @@ export const FreePlayMenu = () => {
   const [difficulty, setDifficulty] = useState('easy');
   const [activeCategory, setActiveCategory] = useState(null);
 
-  const { data: testsData, isLoading } = useGetTests();
+  const testsQuery = useGetTests();
+
+  const testsData = testsQuery.data;
+
+  const testConfigQuery = useGetTestsConfig();
 
   const { categories, gamesByCategory } = useMemo(() => {
     if (!testsData || !Array.isArray(testsData)) {
@@ -85,6 +89,8 @@ export const FreePlayMenu = () => {
 
     return { categories: cats, gamesByCategory: gamesByCat };
   }, [testsData]);
+
+  const isLoading = testsQuery.isLoading || testConfigQuery.isLoading;
 
   return (
     <div
@@ -152,7 +158,9 @@ export const FreePlayMenu = () => {
                   return (
                     <button
                       key={game.id}
-                      onClick={() => navigate('/child/free-play-game', { state: { gameId: game.title, difficulty } })}
+                      onClick={() =>
+                        navigate('/child/free-play-game', { state: { gameId: game.title, activeCategory, difficulty } })
+                      }
                       className={`${activeCatDetails.color} text-white p-6 rounded-[2rem] shadow-sm hover:-translate-y-2 transition-all flex flex-col items-center text-center border-b-8 ${activeCatDetails.border}`}
                     >
                       <div className="bg-white/20 p-4 rounded-full mb-4">

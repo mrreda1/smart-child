@@ -5,7 +5,10 @@ import { Puzzle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const matchingTest = testConfigs?.find((test) => test.name === 'Matching');
   const testDescription = matchingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
@@ -102,7 +105,7 @@ export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
             if (prevT > 0) sumDiff += t - prevT;
             prevT = t;
           });
-          const arl = (sumDiff / currentMoves / 1000).toFixed(2);
+          const arl = (sumDiff / currentMoves).toFixed(2);
 
           setTimeout(
             () =>

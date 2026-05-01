@@ -5,7 +5,10 @@ import { Bug, Timer } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const ReactionGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const bugCatchTest = testConfigs?.find((test) => test.name === 'Bug Catch');
   const testDescription = bugCatchTest?.descriptions?.find((desc) => desc.difficulty === difficulty);

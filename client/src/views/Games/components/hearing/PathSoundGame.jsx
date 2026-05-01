@@ -4,8 +4,10 @@ import { playSound, playTone } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
-
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
   const pathSoundTest = testConfigs?.find((test) => test.name === 'Path Sound');
   const testDescription = pathSoundTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
@@ -65,7 +67,7 @@ export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
     if (round >= totalRounds && !hasFinished && !isLoading && hasStarted) {
       setHasFinished(true);
       const isr = totalSoundsPlayed === 0 ? '0.0' : ((correctIdentifications / totalSoundsPlayed) * 100).toFixed(1);
-      const aarl = totalSoundsPlayed === 0 ? '0.00' : (sumLatency / totalSoundsPlayed / 1000).toFixed(2);
+      const aarl = totalSoundsPlayed === 0 ? '0.00' : (sumLatency / totalSoundsPlayed).toFixed(2);
       onFinish(correctIdentifications * 10, {
         isr,
         aarl,

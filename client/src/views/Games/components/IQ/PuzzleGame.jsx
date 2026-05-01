@@ -5,7 +5,10 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const puzzleTest = testConfigs?.find((test) => test.name === 'Puzzle');
   const testDescription = puzzleTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
@@ -73,17 +76,14 @@ export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null })
       setHasFinished(true);
       playSound(SOUNDS.match);
       const timeTakenMs = Date.now() - startTime;
-      const timeTakenS = timeTakenMs / 1000;
       const optimalMoves = numPieces;
-      const penalty = Math.max(0, currentMoves - optimalMoves) * 5;
-      const ar = Math.max(0, 100 - penalty).toFixed(1);
+      const ar = ((optimalMoves / currentMoves) * 100).toFixed(1);
 
       setTimeout(
         () =>
           onFinish(100, {
-            type: 'iq',
             ar,
-            art: timeTakenS.toFixed(1),
+            art: timeTakenMs.toFixed(1),
             rawData: {
               totalMoves: currentMoves,
               optimalMoves: optimalMoves,

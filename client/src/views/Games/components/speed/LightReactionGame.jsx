@@ -4,7 +4,10 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useRef, useState } from 'react';
 
 export const LightReactionGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const lightReactionTest = testConfigs?.find((test) => test.name === 'Light Reaction');
   const testDescription = lightReactionTest?.descriptions?.find((desc) => desc.difficulty === difficulty);

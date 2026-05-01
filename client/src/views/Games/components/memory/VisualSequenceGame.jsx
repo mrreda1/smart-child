@@ -4,7 +4,10 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const visualSeqTest = testConfigs?.find((test) => test.name === 'visual Sequence');
   const testDescription = visualSeqTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
@@ -24,7 +27,7 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
   const [totalSelections, setTotalSelections] = useState(0);
   const [correctRecalls, setCorrectRecalls] = useState(0);
   const [sumLatency, setSumLatency] = useState(0);
-  const [lastTapTime, setLastTapTime] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(() => Date.now());
   const [hasFinished, setHasFinished] = useState(false);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
     if (round >= totalRounds && !hasFinished && !isLoading) {
       setHasFinished(true);
       const ar = totalSelections === 0 ? '0.0' : ((correctRecalls / totalSelections) * 100).toFixed(1);
-      const arl = totalSelections === 0 ? '0.00' : (sumLatency / totalSelections / 1000).toFixed(2);
+      const arl = totalSelections === 0 ? '0.00' : (sumLatency / totalSelections).toFixed(2);
       onFinish(correctRecalls * 10, {
         ar,
         arl,

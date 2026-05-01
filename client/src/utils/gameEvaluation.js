@@ -1,32 +1,59 @@
-export const evaluateGamePerformance = (score, metrics) => {
-  if (!metrics) return score > 50;
+const isStruggle = (value, struggleLimit, isHigherBetter = true) => {
+  if (isHigherBetter) {
+    return value < struggleLimit;
+  } else {
+    return value > struggleLimit;
+  }
+};
 
-  if (metrics.type === 'drawing') return true;
-  if (metrics.type === 'iq') return parseFloat(metrics.ar) >= 50;
+export const evaluateGamePerformance = (metrics, thresholds) => {
+  const type = metrics.type;
 
-  if (metrics.redProfile !== undefined) {
-    const arValue = parseFloat(metrics.ar);
-    const rgbSum = parseFloat(metrics.redProfile) + parseFloat(metrics.greenProfile) + parseFloat(metrics.blueProfile);
-    return arValue >= 50 && rgbSum >= 50;
+  if (type === 'Art') return true;
+
+  const limits = thresholds[type];
+
+  if (!limits) {
+    console.warn(`No thresholds found for type: ${type}`);
+    return true;
   }
 
-  if (metrics.isr !== undefined) {
-    const isrValue = parseFloat(metrics.isr);
-    const aarlValue = parseFloat(metrics.aarl);
-    return isrValue >= 50 && aarlValue > 0 && aarlValue <= 3.0;
-  }
+  console.log(metrics);
 
-  if (metrics.ar !== undefined && metrics.arl !== undefined) {
-    const arValue = parseFloat(metrics.ar);
-    const arlValue = parseFloat(metrics.arl);
-    return arValue >= 50 && arlValue > 0 && arlValue <= 2.5;
-  }
+  switch (type) {
+    case 'Memory':
+      return !(
+        isStruggle(metrics.ar, limits.accuracy.struggle, true) ||
+        isStruggle(metrics.arl, limits.latencyMs.struggle, false)
+      );
 
-  if (metrics.mrt !== undefined) {
-    const piValue = parseFloat(metrics.pi);
-    const mrtValue = parseFloat(metrics.mrt);
-    return piValue >= 50 && mrtValue > 0 && mrtValue <= 1500;
-  }
+    case 'Reaction Speed':
+      return !(
+        isStruggle(metrics.pi, limits.precision.struggle, true) ||
+        isStruggle(metrics.mrt, limits.responseTimeMs.struggle, false)
+      );
 
-  return score > 50;
+    case 'Color Explore':
+      return !(
+        isStruggle(metrics.ar, limits.accuracy.struggle, true) ||
+        isStruggle(metrics.redProfile, limits.rgbProfile.struggle, true) ||
+        isStruggle(metrics.greenProfile, limits.rgbProfile.struggle, true) ||
+        isStruggle(metrics.blueProfile, limits.rgbProfile.struggle, true)
+      );
+
+    case 'Hearing':
+      return !(
+        isStruggle(metrics.isr, limits.successRate.struggle, true) ||
+        isStruggle(metrics.aarl, limits.latencyMs.struggle, false)
+      );
+
+    case 'IQ':
+      return !(
+        isStruggle(metrics.ar, limits[metrics.testName].accuracy.struggle, true) ||
+        isStruggle(metrics.art, limits[metrics.testName].responseTimeMs.struggle, false)
+      );
+
+    default:
+      return true;
+  }
 };

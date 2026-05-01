@@ -5,7 +5,10 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const oddOneOutTest = testConfigs?.find((test) => test.name === 'Odd One Out');
   const testDescription = oddOneOutTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
@@ -15,15 +18,14 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
   const [round, setRound] = useState(0);
   const [items, setItems] = useState([]);
   const [correctCount, setCorrectCount] = useState(0);
-  const [startTime, setStartTime] = useState(null);
+  const [roundStartTime, setRoundStartTime] = useState(null);
+  const [accumulatedTimeMs, setAccumulatedTimeMs] = useState(0);
   const [hasFinished, setHasFinished] = useState(false);
 
   const [reveal, setReveal] = useState({ show: false, clickedId: null });
 
   useEffect(() => {
     if (isLoading || round >= maxRounds) return;
-
-    if (round === 0 && !startTime) setStartTime(Date.now());
 
     const diffPairs = SIMILAR_PAIRS[difficulty] || SIMILAR_PAIRS.medium;
     const selectedPair = diffPairs[Math.floor(Math.random() * diffPairs.length)];
@@ -43,17 +45,15 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
     newItems[Math.floor(Math.random() * 4)] = { id: 3, emoji: oddEmoji, isOdd: true };
 
     setItems(newItems.sort(() => Math.random() - 0.5).map((item, i) => ({ ...item, id: i })));
-  }, [round, difficulty, maxRounds, isLoading, startTime]);
+  }, [round, difficulty, maxRounds, isLoading]);
 
   useEffect(() => {
     if (round >= maxRounds && !hasFinished && !isLoading) {
       setHasFinished(true);
-      const timeTakenMs = Date.now() - startTime;
-      const timeTakenS = timeTakenMs / 1000;
+      const timeTakenMs = accumulatedTimeMs;
       const ar = ((correctCount / maxRounds) * 100).toFixed(1);
-      const art = (timeTakenS / maxRounds).toFixed(1);
+      const art = (timeTakenMs / maxRounds).toFixed(1);
       onFinish(correctCount * 20, {
-        type: 'iq',
         ar,
         art,
         rawData: {
@@ -63,10 +63,18 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
         },
       });
     }
-  }, [round, maxRounds, hasFinished, startTime, correctCount, onFinish, isLoading]);
+  }, [round, maxRounds, hasFinished, correctCount, onFinish, isLoading, accumulatedTimeMs]);
+
+  useEffect(() => {
+    if (!isLoading && round < maxRounds && !reveal.show) setRoundStartTime(Date.now());
+  }, [round, reveal.show, isLoading, maxRounds]);
 
   const handleSelect = (id, isOdd) => {
     if (reveal.show || hasFinished) return;
+
+    const timeSpentOnThisRound = Date.now() - roundStartTime;
+
+    setAccumulatedTimeMs((prev) => prev + timeSpentOnThisRound);
 
     if (isOdd) {
       playSound(SOUNDS.match);

@@ -117,7 +117,6 @@ export const DrawingGame = ({ onFinish }) => {
       imageFile = await compressImage(imageFile, 2);
 
       onFinish(100, {
-        type: 'drawing',
         rawData: { imageFile },
       });
     }, 'image/png');

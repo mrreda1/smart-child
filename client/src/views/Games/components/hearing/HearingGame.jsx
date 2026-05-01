@@ -5,7 +5,10 @@ import { Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
-  const { data: testConfigs, isLoading } = useGetTestsConfig();
+  const {
+    data: { testsDescription: testConfigs },
+    isLoading,
+  } = useGetTestsConfig();
 
   const hearingTest = testConfigs?.find((test) => test.name === 'Sound Identification');
   const testDescription = hearingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
@@ -77,7 +80,15 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
   };
 
   const handleOptionClick = (itemId) => {
-    if (!hasPlayed || isPlaying || isTransitioning) return;
+    if (!hasPlayed || isTransitioning) return;
+
+    if (isPlaying && audioRef.current) {
+      try {
+        audioRef.current.stop();
+      } catch (e) {}
+      setIsPlaying(false);
+    }
+
     setIsTransitioning(true);
 
     const roundData = rounds[currentRound];
@@ -109,7 +120,7 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
 
         if (currentRound + 1 >= rounds.length) {
           const isr = ((finalCorrect / finalTotalPlayed) * 100).toFixed(1);
-          const aarl = ((sumLatency + currentLatency) / finalTotalPlayed / 1000).toFixed(2);
+          const aarl = ((sumLatency + currentLatency) / finalTotalPlayed).toFixed(2);
           onFinish(finalCorrect * 10, {
             isr,
             aarl,
@@ -165,7 +176,9 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
         <Volume2 size={48} className={isPlaying ? 'text-purple-600' : 'text-white'} />
       </button>
       <div
-        className={`grid ${gridColsClass} gap-4 w-full transition-opacity duration-300 touch-none select-none px-4 ${!hasPlayed || isPlaying ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}
+        className={`grid ${gridColsClass} gap-4 w-full transition-opacity duration-300 touch-none select-none px-4 ${
+          !hasPlayed ? 'opacity-30 pointer-events-none' : 'opacity-100'
+        }`}
       >
         {roundData.options.map((opt) => {
           let btnClass = `bg-white ${roundData.options.length > 6 ? 'p-4 text-4xl' : 'p-6 text-5xl'} rounded-3xl shadow-sm border-b-4 border-gray-200 transition-all transform-gpu will-change-transform flex justify-center items-center select-none [-webkit-tap-highlight-color:transparent] `;

@@ -11,6 +11,7 @@ import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
 import { useCompleteAssessment, useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
 import { useGetCurrentChild } from '@/hooks/child';
+import { useGetTestsConfig } from '@/hooks/test';
 
 export const DailyPlay = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ export const DailyPlay = () => {
   const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: 0, refetchOnMount: true });
 
   const childQuery = useGetCurrentChild();
+
+  const testsConfigQuery = useGetTestsConfig();
 
   const saveTestResMutation = useSaveTestResults();
 
@@ -55,7 +58,10 @@ export const DailyPlay = () => {
   };
 
   const handleFinish = async (score, metrics) => {
-    const isGoodGame = evaluateGamePerformance(score, metrics);
+    metrics.type = currentAssessTestObj.test.category.name;
+    metrics.testName = currentGameName;
+
+    const isGoodGame = evaluateGamePerformance(metrics, testsConfigQuery.data.thresholds);
 
     handleSubmitTest(metrics);
 
@@ -119,7 +125,7 @@ export const DailyPlay = () => {
   }
 
   if (!hasStartedDaily) {
-    if (assessmentTestQuery.isFetching || !assessmentTestQuery.isSuccess) {
+    if (assessmentTestQuery.isFetching || !assessmentTestQuery.isSuccess || !testsConfigQuery.isSuccess) {
       return (
         <div
           className={`min-h-screen ${THEME.bgBeige} font-sans flex flex-col p-4 md:p-6 select-none [-webkit-tap-highlight-color:transparent]`}
@@ -157,6 +163,7 @@ export const DailyPlay = () => {
           >
             <ArrowLeft size={16} /> Back
           </button>
+
           <div className="bg-white border border-gray-200 px-5 py-2 rounded-full font-black text-gray-800 shadow-sm text-sm">
             Daily Tests
           </div>
@@ -244,12 +251,14 @@ export const DailyPlay = () => {
     <div className="min-h-screen bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]">
       <div className="max-w-4xl mx-auto p-6 py-10 flex flex-col h-full">
         <header className="flex items-center mb-10">
-          <button
-            onClick={() => navigate('/child/dashboard')}
-            className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
+          {currentGameName !== 'Drawing' && (
+            <button
+              onClick={() => navigate('/child/dashboard')}
+              className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
+            >
+              <ArrowLeft size={18} /> Quit
+            </button>
+          )}
           <div className="bg-white px-5 py-3 rounded-full font-black text-xl m-auto flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
           </div>

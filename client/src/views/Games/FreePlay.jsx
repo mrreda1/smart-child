@@ -10,11 +10,11 @@ import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
 import { IS_DEV } from '@/constants/config';
+import { useGetTestsConfig } from '@/hooks/test';
 
 export const FreePlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { globalStars } = useAppContext();
 
   const state = location?.state || {};
   const currentGameId = state.gameId;
@@ -24,10 +24,15 @@ export const FreePlay = () => {
   const [devMetrics, setDevMetrics] = useState(null);
   const [isFestival, setIsFestival] = useState(false);
 
+  const testsConfigQuery = useGetTestsConfig();
+
   const gameDetails = currentGameId ? TEST_DETAILS[currentGameId] : null;
 
   const handleFinish = (score, metrics) => {
-    const isGoodGame = evaluateGamePerformance(score, metrics);
+    metrics.type = state.activeCategory;
+    metrics.testName = currentGameId;
+
+    const isGoodGame = evaluateGamePerformance(metrics, testsConfigQuery.data.thresholds);
 
     setDevMetrics(metrics);
     setGameOver(true);
@@ -43,9 +48,9 @@ export const FreePlay = () => {
   if (gameOver) {
     let feedbackMessage = 'Great Practice!';
     if (devMetrics) {
-      if (devMetrics.type === 'drawing') {
+      if (devMetrics.type === 'Art') {
         feedbackMessage = 'Beautiful Artwork! 🎨';
-      } else if (devMetrics.type === 'iq') {
+      } else if (devMetrics.type === 'IQ') {
         const arValue = parseFloat(devMetrics.ar);
         if (arValue >= 80) feedbackMessage = 'Genius Mind! 🧠';
         else if (arValue >= 50) feedbackMessage = 'Great Logic! 🧩';
@@ -87,87 +92,6 @@ export const FreePlay = () => {
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-2">{feedbackMessage}</h1>
           <p className="text-lg text-gray-400 font-bold mb-8">Practice makes perfect!</p>
 
-          {IS_DEV && devMetrics && (
-            <div className="mb-8 bg-gray-50 border-2 border-dashed border-gray-200 p-4 rounded-2xl text-left">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                <BarChart2 size={14} /> Dev Purpose Metrics
-              </p>
-              <div className="space-y-2 font-mono text-sm">
-                {devMetrics.type === 'iq' ? (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">IQ Score (AR):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.ar}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Avg Time (ART):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.art}s</span>
-                    </div>
-                  </>
-                ) : devMetrics.type === 'drawing' ? (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Test Type:</span>
-                      <span className="font-bold text-gray-800">Drawing</span>
-                    </div>
-                  </>
-                ) : devMetrics.redProfile !== undefined ? (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Color Accuracy (AR):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.ar}%</span>
-                    </div>
-                    <div className="flex justify-between mt-2 pt-2 border-t text-xs text-red-500">
-                      <span className="font-bold">Red Profile:</span>
-                      <span className="font-black">{devMetrics.redProfile}%</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-green-500">
-                      <span className="font-bold">Green Profile:</span>
-                      <span className="font-black">{devMetrics.greenProfile}%</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-blue-500">
-                      <span className="font-bold">Blue Profile:</span>
-                      <span className="font-black">{devMetrics.blueProfile}%</span>
-                    </div>
-                  </>
-                ) : devMetrics.isr !== undefined ? (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Success Rate (ISR):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.isr}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Avg Latency (AARL):</span>
-                      <span className="font-bold text-gray-800">{devMetrics.aarl}s</span>
-                    </div>
-                  </>
-                ) : devMetrics.ar !== undefined && devMetrics.arl !== undefined ? (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Accuracy (AR):</span>
-                      <span className="font-bold text-blue-600">{devMetrics.ar}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Latency (ARL):</span>
-                      <span className="font-bold text-blue-600">{devMetrics.arl}s</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 font-bold">Precision (PI):</span>
-                      <span className="font-black text-red-600">{devMetrics.pi}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 font-bold">Mean RT (MRT):</span>
-                      <span className="font-black text-green-600">{devMetrics.mrt}ms</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-4">
             <button
               onClick={() => {
@@ -201,13 +125,10 @@ export const FreePlay = () => {
           >
             <ArrowLeft size={18} /> Quit
           </button>
-          <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
+          <div className="bg-white px-5 py-3 m-auto rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {currentGameId === 'Drawing'
               ? gameDetails?.title
               : `${gameDetails?.title} (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`}
-          </div>
-          <div className="bg-white px-4 py-2 rounded-full font-black text-lg flex items-center shadow-sm border-2 border-gray-100 text-gray-800">
-            <Star size={18} className="mr-2 text-yellow-400 fill-yellow-400" /> {globalStars}
           </div>
         </header>
 
