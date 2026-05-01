@@ -11,8 +11,6 @@ router.use(auth.protectChild);
 
 router.get('/assigned', assessmentController.getAssignedAssessment);
 
-router.post('/', assessmentController.createAssessment);
-
 router.get(
   '/:assessmentId/tests',
   assessmentMiddleware.populateChildAssessment((req) => req.params.assessmentId),
@@ -30,6 +28,7 @@ router.patch(
   '/:assessmentId/complete',
   assessmentMiddleware.populateChildAssessment((req) => req.params.assessmentId),
   assessmentController.completeAssesment,
+  assessmentMiddleware.createNextAssessment,
 );
 
 module.exports = router;

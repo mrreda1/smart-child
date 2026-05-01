@@ -24,43 +24,6 @@ const getAssessmentTests = catchAsync(async (req, res, next) => {
   res.json({ length: assessmentTests.length, data: { assessmentTests } });
 });
 
-const createAssessment = catchAsync(async (req, res, next) => {
-  const childId = req.child._id;
-
-  const [activeAssessment, allTests, lastCompletedAssessment] = await Promise.all([
-    AssessmentModel.findOne({ child_id: childId, status: 'in-progress' }).lean(),
-    TestModel.find().lean(),
-    AssessmentModel.findOne({ child_id: childId, status: 'completed' }).sort({ createdAt: -1 }).lean(),
-  ]);
-
-  if (activeAssessment) return new AppError('An assessment is already in progress.', StatusCodes.CONFLICT);
-
-  if (!allTests.length) return new AppError('No core tests found.', StatusCodes.INTERNAL_SERVER_ERROR);
-
-  const previousTests = lastCompletedAssessment
-    ? await AssessmentTestModel.find({ assessment_id: lastCompletedAssessment._id }).lean()
-    : [];
-
-  const now = new Date();
-
-  const newAssessment = await AssessmentModel.create({
-    child_id: childId,
-    status: 'in-progress',
-    active_in: now.getTime() + 24 * 60 * 60 * 1000,
-  });
-
-  const testsPayload = buildAdaptiveTestsPayload(allTests, previousTests, newAssessment._id);
-  const createdTests = await AssessmentTestModel.insertMany(testsPayload);
-
-  res.status(StatusCodes.CREATED).json({
-    success: true,
-    data: {
-      assessment: newAssessment,
-      tests: createdTests,
-    },
-  });
-});
-
 const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
   if (req.assessmentTest.isCompleted) throw new AppError('You have completed this test', StatusCodes.CONFLICT);
 
@@ -131,12 +94,14 @@ const completeAssesment = catchAsync(async (req, res, next) => {
   const TotalStarsEarned = assessmentTests.reduce((acc, assessmentTest) => acc + assessmentTest.starsEarned, 0);
 
   assessment.status = 'completed';
-  child.num_of_stars = Math.max(0, child.num_of_stars + TotalStarsEarned);
-
   await assessment.save();
+
+  child.num_of_stars = Math.max(0, child.num_of_stars + TotalStarsEarned);
   await child.save();
 
   res.json({ data: { TotalStarsEarned } });
+
+  next();
 });
 
 module.exports = {
@@ -144,5 +109,4 @@ module.exports = {
   getAssessmentTests,
   storeAsessmentTestResult,
   completeAssesment,
-  createAssessment,
 };
