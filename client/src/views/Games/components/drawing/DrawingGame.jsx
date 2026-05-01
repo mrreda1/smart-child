@@ -1,7 +1,7 @@
 import { SOUNDS } from '@/assets';
 import { compressImage } from '@/utils/image';
 import { playSound } from '@/utils/sound';
-import { Eraser, PenTool, Save, Trash2, Upload } from 'lucide-react';
+import { Eraser, Loader2, PenTool, Save, Trash2, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const DrawingGame = ({ onFinish }) => {
@@ -9,6 +9,7 @@ export const DrawingGame = ({ onFinish }) => {
   const fileInputRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isSubmiting, setIsSubmiting] = useState(false);
   const [color, setColor] = useState('#1F2937');
   const [sizeIndex, setSizeIndex] = useState(1);
   const [isEraser, setIsEraser] = useState(false);
@@ -106,6 +107,8 @@ export const DrawingGame = ({ onFinish }) => {
   const handleDone = async () => {
     playSound(SOUNDS.match);
     if (!canvasRef.current) return;
+
+    setIsSubmiting(true);
 
     await canvasRef.current.toBlob(async (blob) => {
       if (!blob) return;
@@ -208,9 +211,22 @@ export const DrawingGame = ({ onFinish }) => {
         </div>
         <button
           onClick={handleDone}
-          className="flex-1 bg-[#fbbf24] text-white font-black text-xl py-4 px-6 rounded-full shadow-sm hover:scale-105 transition-all flex items-center justify-center gap-2"
+          disabled={isSubmiting}
+          className={`flex-1 bg-[#fbbf24] text-white font-black text-xl py-4 px-6 rounded-full shadow-sm transition-all flex items-center justify-center gap-2 ${
+            isSubmiting ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105'
+          }`}
         >
-          <Save size={24} /> Done
+          {isSubmiting ? (
+            <>
+              <Loader2 size={24} className="animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={24} />
+              Done
+            </>
+          )}
         </button>
       </div>
     </div>

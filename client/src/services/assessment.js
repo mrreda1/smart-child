@@ -20,4 +20,10 @@ const saveTestResults = async ({ assessmentTestId, rawData }) => {
   });
 };
 
-export { getAssignedAssessment, getAssessmentTests, saveTestResults };
+const completeAssessment = async ({ assessmentTestId }) => {
+  const res = await apiClient.patch(`${assessmentStartEndpoint}/${assessmentTestId}/complete`);
+
+  return res.data;
+};
+
+export { getAssignedAssessment, getAssessmentTests, saveTestResults, completeAssessment };

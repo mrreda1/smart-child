@@ -29,8 +29,6 @@ export const FreePlay = () => {
   const handleFinish = (score, metrics) => {
     const isGoodGame = evaluateGamePerformance(score, metrics);
 
-    console.log(metrics.rawData);
-
     setDevMetrics(metrics);
     setGameOver(true);
 

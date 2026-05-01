@@ -4,24 +4,28 @@ import { THEME } from '@/constants/config';
 import { useAppContext } from '@/context/AppContext';
 import { playSound } from '@/utils/sound';
 import { ArrowLeft, Loader2, Play, Puzzle, Star, TrendingUp, Trophy } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
-import { useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
+import { useCompleteAssessment, useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
+import { completeAssessment } from '@/services/assessment';
+import { useGetCurrentChild } from '@/hooks/child';
 
 export const DailyPlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location?.state || {};
 
-  const { globalStars, setGlobalStars } = useAppContext();
-
   const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: 0, refetchOnMount: true });
 
+  const childQuery = useGetCurrentChild();
+
   const saveTestResMutation = useSaveTestResults();
+
+  const completeAssessmentMutation = useCompleteAssessment();
 
   const assessmentTests = assessmentTestQuery.data || [];
 
@@ -38,6 +42,8 @@ export const DailyPlay = () => {
   const currentDifficulty = currentAssessTestObj?.difficulty || 'easy';
   const gameDetails = currentGameName ? TEST_DETAILS[currentGameName] : null;
 
+  const pendingSaveRequests = useRef([]);
+
   const handleSubmitTest = (metrics) => {
     const formData = new FormData();
 
@@ -46,10 +52,12 @@ export const DailyPlay = () => {
     if (currentAssessTestObj.test.name === 'Drawing') formData.append('image', metrics.rawData.imageFile);
     else formData.append('testData', JSON.stringify(metrics.rawData));
 
-    saveTestResMutation.mutateAsync({ assessmentTestId, rawData: formData }).catch((err) => {});
+    const saveRequest = saveTestResMutation.mutateAsync({ assessmentTestId, rawData: formData });
+
+    pendingSaveRequests.current.push(saveRequest);
   };
 
-  const handleFinish = (score, metrics) => {
+  const handleFinish = async (score, metrics) => {
     const isGoodGame = evaluateGamePerformance(score, metrics);
 
     handleSubmitTest(metrics);
@@ -89,13 +97,19 @@ export const DailyPlay = () => {
         isGoodGame ? 2500 : 500,
       );
     } else {
-      setTimeout(
-        () => {
-          // setGlobalStars((prev) => Math.max(0, prev + newSessionTotal));
-          setGameOver(true);
-        },
-        isGoodGame ? 2500 : 500,
-      );
+      //  Handle Assessment Copmletetion
+
+      try {
+        await Promise.allSettled(pendingSaveRequests.current); // Wait Other Tests Result Requests If Exist Before Completing The Assessment
+
+        const { TotalStarsEarned } = await completeAssessmentMutation.mutateAsync({
+          assessmentTestId: state.assessment?._id,
+        });
+
+        setSessionStarsEarned(TotalStarsEarned);
+
+        setGameOver(true);
+      } catch (err) {}
     }
   };
 
@@ -115,7 +129,7 @@ export const DailyPlay = () => {
               {sessionStarsEarned}
               <Star size={28} className="inline text-yellow-500 fill-yellow-500 mb-1" />
             </p>
-            <p className="text-sm font-bold text-gray-400 mt-2">Total: {globalStars} Stars</p>
+            <p className="text-sm font-bold text-gray-400 mt-2">Total: {childQuery.data.num_of_stars} Stars</p>
           </div>
           <button
             onClick={() => navigate('/child/dashboard')}
@@ -262,9 +276,6 @@ export const DailyPlay = () => {
           </button>
           <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
-          </div>
-          <div className="bg-white px-4 py-2 rounded-full font-black text-lg flex items-center shadow-sm border-2 border-gray-100 text-gray-800">
-            <Star size={18} className="mr-2 text-yellow-400 fill-yellow-400" /> {globalStars}
           </div>
         </header>
 
