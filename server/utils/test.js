@@ -41,7 +41,7 @@ const evaluateReactionSpeed = (rawData) => {
   const MRT = rawData.sumOfResponseTimesMs / hits;
   const PI = (hits / total) * 100;
 
-  const limits = thresholds.ReactionSpeed;
+  const limits = thresholds['Reaction Speed'];
 
   const mrtState = determineState(MRT, limits.responseTimeMs.struggle, limits.responseTimeMs.mastery, false);
   const piState = determineState(PI, limits.precision.struggle, limits.precision.mastery, true);
@@ -59,7 +59,7 @@ const evaluateColorExplore = (rawData) => {
   const greenProfile = rawData.Green ? (rawData.Green.hits / (rawData.Green.prompts || 1)) * 100 : 0;
   const blueProfile = rawData.Blue ? (rawData.Blue.hits / (rawData.Blue.prompts || 1)) * 100 : 0;
 
-  const limits = thresholds.ColorExplore;
+  const limits = thresholds['Color Explore'];
 
   const arState = determineState(AR, limits.accuracy.struggle, limits.accuracy.mastery, true);
 
@@ -90,7 +90,7 @@ const evaluateHearing = (rawData) => {
   return { metrics: { ISR, AARL }, difficultyAction };
 };
 
-const evaluateIQ = (rawData) => {
+const evaluateIQ = (testName, rawData) => {
   let AR = 0;
   let ART = 0;
 
@@ -104,7 +104,7 @@ const evaluateIQ = (rawData) => {
     ART = rawData.timeTakenMs / total;
   }
 
-  const limits = thresholds.IQ;
+  const limits = thresholds.IQ[testName];
 
   const arState = determineState(AR, limits.accuracy.struggle, limits.accuracy.mastery, true);
   const artState = determineState(ART, limits.responseTimeMs.struggle, limits.responseTimeMs.mastery, false);
@@ -133,7 +133,7 @@ const evaluateMetrices = (assessmentTest) => {
       evaluationResult = evaluateHearing(rawData);
       break;
     case 'IQ':
-      evaluationResult = evaluateIQ(rawData);
+      evaluationResult = evaluateIQ(assessmentTest.test_id.name, rawData);
       break;
     case 'Art':
       evaluationResult = { metrics: { image: rawData.image }, difficultyAction: 'maintain' };
