@@ -35,9 +35,9 @@ const ChildDashboard = () => {
   const assignedAssessmentQuery = useGetAssignedAssessment();
 
   useEffect(() => {
-    if (!assignedAssessmentQuery.data) return;
-
     const assessment = assignedAssessmentQuery.data;
+
+    if (!assessment || assessment.status === 'completed') return;
 
     const assessmentActiveTime = new Date(assessment.active_in);
 
@@ -129,7 +129,9 @@ const ChildDashboard = () => {
               {isTestLocked ? (
                 <div className="bg-gray-400/50 px-5 py-2.5 rounded-full mt-1">
                   <p className="text-white font-bold text-lg flex items-center justify-center gap-2">
-                    Next in {countdown}
+                    {assignedAssessmentQuery.data.status === 'completed'
+                      ? 'Preparing next assessment 🚀'
+                      : `Next in ${countdown}`}
                   </p>
                 </div>
               ) : (

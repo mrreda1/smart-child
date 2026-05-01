@@ -124,6 +124,7 @@ const useSwitchToParent = (axiosConfig) => {
     mutationFn: (data) => authService.switchToParent(data, axiosConfig),
     onSuccess: ({ token, parent }) => {
       queryClient.removeQueries(['currentChild']);
+      queryClient.removeQueries(['assignedAssessment']);
       queryClient.setQueryData(['currentUser'], parent);
 
       updateToken(token);

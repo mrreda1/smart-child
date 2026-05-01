@@ -1,7 +1,6 @@
 import { SOUNDS } from '@/assets';
 import Confetti from '@/components/common/Confetti';
 import { THEME } from '@/constants/config';
-import { useAppContext } from '@/context/AppContext';
 import { playSound } from '@/utils/sound';
 import { ArrowLeft, Loader2, Play, Puzzle, Star, TrendingUp, Trophy } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -11,7 +10,6 @@ import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
 import { useCompleteAssessment, useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
-import { completeAssessment } from '@/services/assessment';
 import { useGetCurrentChild } from '@/hooks/child';
 
 export const DailyPlay = () => {
@@ -30,7 +28,6 @@ export const DailyPlay = () => {
   const assessmentTests = assessmentTestQuery.data || [];
 
   const [currentTestIndex, setCurrentTestIndex] = useState(0);
-  const [dailyResults, setDailyResults] = useState({});
   const [sessionStarsEarned, setSessionStarsEarned] = useState(0);
 
   const [hasStartedDaily, setHasStartedDaily] = useState(false);
@@ -62,31 +59,10 @@ export const DailyPlay = () => {
 
     handleSubmitTest(metrics);
 
-    // Calculate Stars
-    let starDelta = 0;
-    if (metrics?.type === 'drawing') {
-      starDelta = 2;
+    if (isGoodGame) {
       setIsFestival(true);
       playSound(SOUNDS.win);
-    } else if (isGoodGame) {
-      starDelta = currentDifficulty === 'hard' ? 7 : currentDifficulty === 'medium' ? 5 : 3;
-      setIsFestival(true);
-      playSound(SOUNDS.win);
-    } else {
-      starDelta = currentDifficulty === 'hard' ? -3 : currentDifficulty === 'medium' ? -2 : -1;
-      playSound(SOUNDS.fail);
-    }
-
-    const newSessionTotal = sessionStarsEarned + starDelta;
-    setSessionStarsEarned(newSessionTotal);
-
-    if (currentAssessTestObj) {
-      const updatedResults = {
-        ...dailyResults,
-        [currentAssessTestObj.id]: { rawData: metrics, isGoodGame, score },
-      };
-      setDailyResults(updatedResults);
-    }
+    } else playSound(SOUNDS.fail);
 
     if (currentTestIndex < assessmentTests.length - 1) {
       setTimeout(
@@ -267,14 +243,14 @@ export const DailyPlay = () => {
   return (
     <div className="min-h-screen bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]">
       <div className="max-w-4xl mx-auto p-6 py-10 flex flex-col h-full">
-        <header className="flex justify-between items-center mb-10">
+        <header className="flex items-center mb-10">
           <button
             onClick={() => navigate('/child/dashboard')}
             className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
           >
             <ArrowLeft size={18} /> Back
           </button>
-          <div className="bg-white px-5 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
+          <div className="bg-white px-5 py-3 rounded-full font-black text-xl m-auto flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
             {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
           </div>
         </header>
