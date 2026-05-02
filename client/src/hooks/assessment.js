@@ -1,4 +1,4 @@
-import { completeAssessment, getAssessmentTests, getAssignedAssessment, saveTestResults } from '@/services/assessment';
+import { getAssessmentTests, getAssignedAssessment, saveTestResults } from '@/services/assessment';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 const useGetAssignedAssessment = () =>
@@ -15,29 +15,15 @@ const useGetAssessmentTests = (assessmentId, queryConfig = {}) =>
     ...queryConfig,
   });
 
-const useSaveTestResults = () =>
-  useMutation({
-    mutationFn: saveTestResults,
-  });
-
-const useCompleteAssessment = () => {
+const useSaveTestResults = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: completeAssessment,
+    mutationFn: saveTestResults,
     onSuccess: (data) => {
-      const { TotalStarsEarned } = data;
-
-      queryClient.setQueryData(['currentChild'], (oldProfileData) => {
-        if (!oldProfileData) return oldProfileData;
-
-        return {
-          ...oldProfileData,
-          num_of_stars: oldProfileData.num_of_stars + TotalStarsEarned,
-        };
-      });
+      if (data.assessmentState.status === 'completed') queryClient.invalidateQueries(['assignedAssessment']);
     },
   });
 };
 
-export { useGetAssignedAssessment, useGetAssessmentTests, useSaveTestResults, useCompleteAssessment };
+export { useGetAssignedAssessment, useGetAssessmentTests, useSaveTestResults };

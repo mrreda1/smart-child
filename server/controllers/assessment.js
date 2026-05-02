@@ -7,6 +7,8 @@ const { evaluateMetrices, calculateStarDelta, buildAdaptiveTestsPayload } = requ
 
 const { AssessmentModel, AssessmentTestModel, TestModel } = require('../models/index');
 
+const { evaluateAssessmentCompletion } = require('../utils/assessment');
+
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
   const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ createdAt: -1 });
 
@@ -27,11 +29,22 @@ const getAssessmentTests = catchAsync(async (req, res, next) => {
 const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
   if (req.assessmentTest.isCompleted) throw new AppError('You have completed this test', StatusCodes.CONFLICT);
 
-  if (req.file) return await handleDrawingTestResult(req, res, next);
-  else return await handleTestsResult(req, res, next);
+  if (req.file) await handleDrawingTestResult(req);
+  else await handleTestsResult(req);
+
+  const assessment = await AssessmentModel.findById(req.assessmentTest.assessment_id);
+
+  if (!assessment) throw new AppError('Assessment not found', StatusCodes.NOT_FOUND);
+
+  const assessmentState = await evaluateAssessmentCompletion(assessment, req.child);
+
+  res.status(StatusCodes.OK).json({
+    message: 'Test saved successfully',
+    assessmentState,
+  });
 });
 
-const handleDrawingTestResult = async (req, res, next) => {
+const handleDrawingTestResult = async (req) => {
   const assessmentTest = req.assessmentTest;
 
   assessmentTest.rawData = { image: req.file.filename };
@@ -44,11 +57,9 @@ const handleDrawingTestResult = async (req, res, next) => {
   assessmentTest.starsEarned = starDelta;
 
   await assessmentTest.save();
-
-  res.sendStatus(StatusCodes.OK);
 };
 
-const handleTestsResult = async (req, res, next) => {
+const handleTestsResult = async (req) => {
   const assessmentTest = req.assessmentTest;
 
   req.body = JSON.parse(req.body.testData);
@@ -73,40 +84,10 @@ const handleTestsResult = async (req, res, next) => {
   assessmentTest.starsEarned = starDelta;
 
   await assessmentTest.save();
-
-  res.sendStatus(StatusCodes.OK);
 };
-const completeAssesment = catchAsync(async (req, res, next) => {
-  const assessment = req.assessment;
-  const child = req.child;
-
-  if (assessment.status === 'completed') throw new AppError('Assessment Is Already Completed', StatusCodes.CONFLICT);
-
-  const assessmentTests = await AssessmentTestModel.find({
-    assessment_id: req.assessment._id,
-  }).select('-assessment_id');
-
-  if (assessmentTests.length === 0) throw new AppError('No Tests Associated To This Assessment', StatusCodes.NOT_FOUND);
-
-  if (!assessmentTests.every((e) => e.isCompleted))
-    throw new AppError('All Tests Of That Assessment Should be Completed First', StatusCodes.CONFLICT);
-
-  const TotalStarsEarned = assessmentTests.reduce((acc, assessmentTest) => acc + assessmentTest.starsEarned, 0);
-
-  assessment.status = 'completed';
-  await assessment.save();
-
-  child.num_of_stars = Math.max(0, child.num_of_stars + TotalStarsEarned);
-  await child.save();
-
-  res.json({ data: { TotalStarsEarned } });
-
-  next();
-});
 
 module.exports = {
   getAssignedAssessment,
   getAssessmentTests,
   storeAsessmentTestResult,
-  completeAssesment,
 };

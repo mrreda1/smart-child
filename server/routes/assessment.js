@@ -24,11 +24,4 @@ router.post(
   assessmentController.storeAsessmentTestResult,
 );
 
-router.patch(
-  '/:assessmentId/complete',
-  assessmentMiddleware.populateChildAssessment((req) => req.params.assessmentId),
-  assessmentController.completeAssesment,
-  assessmentMiddleware.createNextAssessment,
-);
-
 module.exports = router;

@@ -1,6 +1,6 @@
 import { SOUNDS } from '@/assets';
 import Confetti from '@/components/common/Confetti';
-import { THEME } from '@/constants/config';
+import { IS_DEV, THEME } from '@/constants/config';
 import { playSound } from '@/utils/sound';
 import { ArrowLeft, Loader2, Play, Puzzle, Star, TrendingUp, Trophy } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -9,7 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
 import { GameRenderer } from '@/components/common/GameRenderer';
-import { useCompleteAssessment, useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
+import { useGetAssessmentTests, useSaveTestResults } from '@/hooks/assessment';
 import { useGetCurrentChild } from '@/hooks/child';
 import { useGetTestsConfig } from '@/hooks/test';
 
@@ -25,8 +25,6 @@ export const DailyPlay = () => {
   const testsConfigQuery = useGetTestsConfig();
 
   const saveTestResMutation = useSaveTestResults();
-
-  const completeAssessmentMutation = useCompleteAssessment();
 
   const assessmentTests = assessmentTestQuery.data || [];
 
@@ -55,6 +53,8 @@ export const DailyPlay = () => {
     const saveRequest = saveTestResMutation.mutateAsync({ assessmentTestId, rawData: formData });
 
     pendingSaveRequests.current.push(saveRequest);
+
+    return saveRequest;
   };
 
   const handleFinish = async (score, metrics) => {
@@ -63,14 +63,14 @@ export const DailyPlay = () => {
 
     const isGoodGame = evaluateGamePerformance(metrics, testsConfigQuery.data.thresholds);
 
-    handleSubmitTest(metrics);
-
     if (isGoodGame) {
       setIsFestival(true);
       playSound(SOUNDS.win);
     } else playSound(SOUNDS.fail);
 
     if (currentTestIndex < assessmentTests.length - 1) {
+      handleSubmitTest(metrics);
+
       setTimeout(
         () => {
           setIsFestival(false);
@@ -82,16 +82,17 @@ export const DailyPlay = () => {
       //  Handle Assessment Copmletetion
 
       try {
-        await Promise.allSettled(pendingSaveRequests.current); // Wait Other Tests Result Requests If Exist Before Completing The Assessment
+        await Promise.all(pendingSaveRequests.current); // Wait Other Tests Result Requests If Exist Before Completing The Assessment
 
-        const { TotalStarsEarned } = await completeAssessmentMutation.mutateAsync({
-          assessmentTestId: state.assessment?._id,
-        });
+        const { assessmentState } = await handleSubmitTest(metrics); // Submit Last Test
 
-        setSessionStarsEarned(TotalStarsEarned);
-
-        setGameOver(true);
-      } catch (err) {}
+        if (assessmentState.status === 'completed') {
+          setSessionStarsEarned(assessmentState.completionPayload.TotalStarsEarned);
+          setGameOver(true);
+        }
+      } catch (err) {
+        IS_DEV && console.error(err);
+      }
     }
   };
 
@@ -251,7 +252,7 @@ export const DailyPlay = () => {
     <div className="min-h-screen bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]">
       <div className="max-w-4xl mx-auto p-6 py-10 flex flex-col h-full">
         <header className="flex items-center mb-10">
-          {currentGameName !== 'Drawing' && (
+          {currentTestIndex < assessmentTests.length - 1 && (
             <button
               onClick={() => navigate('/child/dashboard')}
               className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
