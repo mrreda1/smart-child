@@ -2,8 +2,10 @@ import { PenTool, Trash2, Play, BarChart2, LinkIcon, Copy } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { THEME } from '@/constants/config';
+import { useNavigate } from 'react-router-dom';
 
 export const ProfileCard = ({ profile, isLinked, onEdit, onDelete, onPlay, onViewReports }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 flex flex-col items-center text-center relative overflow-hidden group">
       {isLinked ? (
@@ -78,7 +80,7 @@ export const ProfileCard = ({ profile, isLinked, onEdit, onDelete, onPlay, onVie
           <Play size={16} fill="currentColor" /> Play Mode
         </button>
         <button
-          onClick={() => onViewReports(profile)}
+          onClick={() => navigate('/parent/child/reports', { state: { child: profile } })}
           className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold py-3 rounded-full transition-colors text-sm flex justify-center items-center gap-2"
         >
           <BarChart2 size={16} /> View Reports

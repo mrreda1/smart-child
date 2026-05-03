@@ -6,20 +6,25 @@ import {
   MiniLineChart,
   ReactionChartVisual,
 } from '@/components/charts/Charts';
+import GamifiedLoader from '@/components/common/GamifiedLoader';
 import { THEME } from '@/constants/config';
 import { MOCK_HISTORY_DATA, MOCK_REPORTS_DATA, OVERALL_RECOMMENDATION } from '@/constants/mockData';
-import { useAppContext } from '@/context/AppContext';
+import { useGetCurrentChild } from '@/hooks/child';
 import { Calendar, ChevronRight, Download, FileText, Printer, Puzzle, Smile, TrendingUp, X } from 'lucide-react';
 import React, { Activity, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 const ReportsDashboard = () => {
-  const { activeChild } = useAppContext();
+  const { state } = useLocation();
+
+  if (!state || !state.child) return <Navigate to="/parent/dashboard" />;
+
   const [activePrintReport, setActivePrintReport] = useState(null);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
 
-  const childName = activeChild?.name || 'Child';
-  const childAge = activeChild?.age || '-';
-  const childAvatar = activeChild?.avatar || ASSETS.avatars.child1;
+  const childName = state?.child?.name;
+  const childAge = state?.child?.age;
+  const childAvatar = state?.child?.photo;
 
   const handlePrint = (reportType, payload = null) => {
     setActivePrintReport({ type: reportType, data: payload });
@@ -35,7 +40,7 @@ const ReportsDashboard = () => {
         <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-gray-200 pb-8">
           <div className="flex items-center gap-6">
             <img
-              src={childAvatar}
+              src={`${import.meta.env.VITE_IMG_BASE_URL}/${childAvatar}`}
               className="w-20 h-20 rounded-full bg-blue-50 border-4 border-white shadow-sm object-cover"
               alt={childName}
             />

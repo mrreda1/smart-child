@@ -74,9 +74,6 @@ const ParentDashboard = () => {
                 onEdit={() => openModal('EDIT', pc.child)}
                 onDelete={() => openModal('DELETE', pc.child)}
                 onPlay={() => openModal('PLAY_WARNING', pc.child)}
-                onViewReports={() => {
-                  navigate('/parent/child/reports');
-                }}
               />
             ))}
           </div>
@@ -109,9 +106,6 @@ const ParentDashboard = () => {
                 profile={pc.child}
                 isLinked={!pc.is_owner}
                 onPlay={() => openModal('PLAY_WARNING', pc.child)}
-                onViewReports={() => {
-                  navigate('/parent/child/reports', { state: { nextView: '/reports' } });
-                }}
               />
             ))}
             <div

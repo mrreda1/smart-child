@@ -21,7 +21,8 @@ const useSaveTestResults = () => {
   return useMutation({
     mutationFn: saveTestResults,
     onSuccess: (data) => {
-      if (data.assessmentState.status === 'completed') queryClient.invalidateQueries(['assignedAssessment']);
+      if (data.assessmentState.status === 'completed')
+        queryClient.invalidateQueries({ queryKey: ['assignedAssessment'] });
     },
   });
 };

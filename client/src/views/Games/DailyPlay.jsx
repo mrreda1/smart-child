@@ -18,7 +18,7 @@ export const DailyPlay = () => {
   const location = useLocation();
   const state = location?.state || {};
 
-  const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: 0, refetchOnMount: true });
+  const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: Infinity });
 
   const childQuery = useGetCurrentChild();
 
@@ -80,12 +80,9 @@ export const DailyPlay = () => {
       );
     } else {
       //  Handle Assessment Copmletetion
-
       try {
         await Promise.all(pendingSaveRequests.current); // Wait Other Tests Result Requests If Exist Before Completing The Assessment
-
         const { assessmentState } = await handleSubmitTest(metrics); // Submit Last Test
-
         if (assessmentState.status === 'completed') {
           setSessionStarsEarned(assessmentState.completionPayload.TotalStarsEarned);
           setGameOver(true);

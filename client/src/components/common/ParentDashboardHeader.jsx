@@ -24,7 +24,7 @@ const ParentDashboardHeader = () => {
     <>
       {/* 1. THE MAIN HEADER BAR */}
       <header className="bg-[#FFFDF8] w-full sticky top-0 z-50 border-b border-gray-100 h-20 md:h-24 flex items-center">
-        <div className="max-w-7xl mx-auto w-full px-6 md:px-12 flex items-center justify-between">
+        <div className="w-full px-6 md:px-20 flex items-center justify-between">
           {/* Logo */}
           <img
             className="w-14 md:w-16 cursor-pointer active:scale-95 transition-transform"

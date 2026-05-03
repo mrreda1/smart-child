@@ -4,7 +4,7 @@ import { useAppContext } from '@/context/AppContext';
 import { playSound } from '@/utils/sound';
 import { ArrowLeft, BarChart2, RotateCcw, Star, Trophy } from 'lucide-react';
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { TEST_DETAILS } from '@/constants/testsStyling';
 import { evaluateGamePerformance } from '@/utils/gameEvaluation';
@@ -16,7 +16,9 @@ export const FreePlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const state = location?.state || {};
+  if (!location.state) return <Navigate to="/child/free-play" />;
+
+  const state = location.state;
   const currentGameId = state.gameId;
   const currentDifficulty = state.difficulty || 'easy';
 

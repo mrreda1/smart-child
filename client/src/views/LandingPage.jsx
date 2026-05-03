@@ -15,8 +15,12 @@ const LandingPage = () => {
   return (
     <div className={`min-h-screen bg-white font-sans overflow-x-hidden text-gray-900`}>
       {/* NAVIGATION */}
-      <nav className="flex items-center justify-between px-6 md:px-12 py-6 max-w-7xl mx-auto bg-transparent relative z-50">
-        <img className="w-16 " src={ASSETS.logo} alt="smart-child-logo" />
+      <nav className="w-full px-6 h-20 md:h-24 md:px-20 flex items-center justify-between">
+        <img
+          className="w-14 md:w-16 cursor-pointer active:scale-95 transition-transform"
+          src={ASSETS.logo}
+          alt="smart-child-logo"
+        />
         <div className="hidden md:flex gap-10 font-bold text-gray-800 text-sm">
           <a
             href="#"
