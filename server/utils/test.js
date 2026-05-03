@@ -195,4 +195,10 @@ const buildAdaptiveTestsPayload = (allTests, previousTests, newAssessmentId) => 
   });
 };
 
-module.exports = { evaluateMetrices, calculateStarDelta, calculateNewDifficulty, buildAdaptiveTestsPayload };
+module.exports = {
+  evaluateMetrices,
+  calculateStarDelta,
+  calculateNewDifficulty,
+  buildAdaptiveTestsPayload,
+  determineState,
+};

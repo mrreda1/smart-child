@@ -9,7 +9,7 @@ const { AssessmentModel, AssessmentTestModel, TestModel } = require('../models/i
 
 const { evaluateAssessmentCompletion } = require('../utils/assessment');
 
-const imageService = require('../services/ImageClassificationService');
+const imageService = require('../services/imageClassificationService');
 
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
   const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ createdAt: -1 });
@@ -53,11 +53,13 @@ const handleDrawingTestResult = async (req) => {
 
   const { emotion } = await imageService.classifyImage(req.file);
 
-  assessmentTest.rawData = { image: req.file.filename, emotion };
+  assessmentTest.rawData = { image: req.file.filename };
 
   assessmentTest.isCompleted = true;
 
   assessmentTest.results = evaluateMetrices(assessmentTest);
+
+  assessmentTest.results.metrics.emotion = emotion;
 
   const starDelta = calculateStarDelta(assessmentTest.results.difficultyAction, assessmentTest.difficulty, true);
 

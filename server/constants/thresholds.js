@@ -27,4 +27,9 @@ const assessmentThresholds = {
   },
 };
 
+const metricThresholds = {
+  accuracy: { struggle: 60, pass: 80 },
+  latency: { struggle: undefined, pass: undefined },
+};
+
 module.exports = { assessmentThresholds };

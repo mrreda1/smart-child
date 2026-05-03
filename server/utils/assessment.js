@@ -4,6 +4,8 @@ const AppError = require('./appError');
 
 const { buildAdaptiveTestsPayload } = require('./test');
 
+const reportService = require('../services/reportService');
+
 const createNextAssessment = async (childId, previousTests) => {
   try {
     const allTests = await TestModel.find().lean();
@@ -51,6 +53,8 @@ const evaluateAssessmentCompletion = async (assessment, child) => {
   const leanPreviousTests = assessmentTests.map((test) => test.toObject());
 
   await createNextAssessment(child._id, leanPreviousTests);
+
+  reportService.generateReport(assessment.toObject(), leanPreviousTests).catch((err) => {});
 
   return {
     status: 'completed',
