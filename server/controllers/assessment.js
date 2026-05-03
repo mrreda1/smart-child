@@ -3,11 +3,13 @@ const catchAsync = require('../utils/catchAsync');
 
 const AppError = require('../utils/appError');
 
-const { evaluateMetrices, calculateStarDelta, buildAdaptiveTestsPayload } = require('../utils/test');
+const { evaluateMetrices, calculateStarDelta } = require('../utils/test');
 
 const { AssessmentModel, AssessmentTestModel, TestModel } = require('../models/index');
 
 const { evaluateAssessmentCompletion } = require('../utils/assessment');
+
+const imageService = require('../services/ImageClassificationService');
 
 const getAssignedAssessment = catchAsync(async (req, res, next) => {
   const assignedAssessment = await AssessmentModel.findOne({ child_id: req.child._id }).sort({ createdAt: -1 });
@@ -29,7 +31,7 @@ const getAssessmentTests = catchAsync(async (req, res, next) => {
 const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
   if (req.assessmentTest.isCompleted) throw new AppError('You have completed this test', StatusCodes.CONFLICT);
 
-  if (req.file) await handleDrawingTestResult(req);
+  if (req.assessmentTest.test_id.name === 'Drawing') await handleDrawingTestResult(req);
   else await handleTestsResult(req);
 
   const assessment = await AssessmentModel.findById(req.assessmentTest.assessment_id);
@@ -47,7 +49,12 @@ const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
 const handleDrawingTestResult = async (req) => {
   const assessmentTest = req.assessmentTest;
 
-  assessmentTest.rawData = { image: req.file.filename };
+  if (!req.file) throw new AppError('Image field is required', StatusCodes.BAD_REQUEST);
+
+  const { emotion } = await imageService.classifyImage(req.file);
+
+  assessmentTest.rawData = { image: req.file.filename, emotion };
+
   assessmentTest.isCompleted = true;
 
   assessmentTest.results = evaluateMetrices(assessmentTest);
@@ -70,9 +77,7 @@ const handleTestsResult = async (req) => {
 
   const emptyProperty = Object.values(req.body).some((val) => !val && val !== 0 && val !== false);
 
-  if (emptyProperty) {
-    throw new AppError("Test results shouldn't have empty data", StatusCodes.BAD_REQUEST);
-  }
+  if (emptyProperty) throw new AppError("Test results shouldn't have empty data", StatusCodes.BAD_REQUEST);
 
   assessmentTest.rawData = req.body;
   assessmentTest.isCompleted = true;
