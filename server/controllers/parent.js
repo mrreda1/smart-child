@@ -4,7 +4,7 @@ const AppError = require('../utils/appError');
 const filterObj = require('../utils/filterObj');
 const factory = require('./handlerFactory');
 const { StatusCodes } = require('http-status-codes');
-const fileService = require('../services/FileService');
+const FileService = require('../services/FileService');
 
 exports.getUser = factory.getOne(Parent);
 
@@ -20,7 +20,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   const currentUser = await Parent.findById(req.user.id);
 
   if (req.file) {
-    await fileService.deleteProfilePhoto(currentUser.photo);
+    FileService.deleteFile(currentUser.photo).catch((err) => {});
 
     req.body.photo = req.file.filename;
   }
