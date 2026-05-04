@@ -25,6 +25,23 @@ const assessmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+assessmentSchema.virtual('report', {
+  ref: 'DailyReport',
+  localField: '_id',
+  foreignField: 'assessment_id',
+  justOne: true,
+});
+
+assessmentSchema.set('toObject', { virtuals: true });
+
+assessmentSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete ret._id;
+    delete ret.__v;
+  },
+});
+
 assessmentSchema.plugin(cascadeDeletePlugin, [
   { modelName: 'DailyReport', foreignKey: 'assessment_id' },
   { modelName: 'AssessmentTest', foreignKey: 'assessment_id' },

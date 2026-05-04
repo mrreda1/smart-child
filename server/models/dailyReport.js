@@ -22,4 +22,12 @@ const dailyReportSchema = new mongoose.Schema(
 
 dailyReportSchema.index({ assessment_id: 1 }, { unique: true });
 
+dailyReportSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete ret._id;
+    delete ret.__v;
+  },
+});
+
 module.exports = mongoose.model('DailyReport', dailyReportSchema);
