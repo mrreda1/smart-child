@@ -18,7 +18,7 @@ export const DailyPlay = () => {
   const location = useLocation();
   const state = location?.state || {};
 
-  const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: Infinity });
+  const assessmentTestQuery = useGetAssessmentTests(state.assessment?._id, { staleTime: 0 });
 
   const childQuery = useGetCurrentChild();
 
