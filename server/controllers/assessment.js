@@ -5,9 +5,9 @@ const AppError = require('../utils/appError');
 
 const { evaluateMetrices, calculateStarDelta } = require('../utils/test');
 
-const { AssessmentModel, AssessmentTestModel, TestModel } = require('../models/index');
+const { AssessmentModel, AssessmentTestModel } = require('../models/index');
 
-const { evaluateAssessmentCompletion } = require('../utils/assessment');
+const assessmentService = require('../services/assessmentService');
 
 const imageService = require('../services/imageClassificationService');
 
@@ -38,7 +38,7 @@ const storeAsessmentTestResult = catchAsync(async (req, res, next) => {
 
   if (!assessment) throw new AppError('Assessment not found', StatusCodes.NOT_FOUND);
 
-  const assessmentState = await evaluateAssessmentCompletion(assessment, req.child);
+  const assessmentState = await assessmentService.handleAssessmentOnCompletion(assessment, req.child);
 
   res.status(StatusCodes.OK).json({
     message: 'Test saved successfully',
@@ -70,6 +70,8 @@ const handleDrawingTestResult = async (req) => {
 
 const handleTestsResult = async (req) => {
   const assessmentTest = req.assessmentTest;
+
+  console.log(req.body);
 
   req.body = JSON.parse(req.body.testData);
 

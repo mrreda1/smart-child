@@ -1,10 +1,12 @@
 const { StatusCodes } = require('http-status-codes/build/cjs');
 const { TestModel, AssessmentTestModel, AssessmentModel } = require('../models/index');
-const AppError = require('./appError');
+const AppError = require('../utils/appError');
 
-const { buildAdaptiveTestsPayload } = require('./test');
+const { buildAdaptiveTestsPayload } = require('../utils/test');
 
-const reportService = require('../services/reportService');
+const reportService = require('./reportService');
+
+const { assessmentEvents } = require('../events/events');
 
 const createNextAssessment = async (childId, previousTests) => {
   try {
@@ -26,7 +28,7 @@ const createNextAssessment = async (childId, previousTests) => {
   }
 };
 
-const evaluateAssessmentCompletion = async (assessment, child) => {
+const handleAssessmentOnCompletion = async (assessment, child) => {
   const assessmentTests = await AssessmentTestModel.find({
     assessment_id: assessment._id,
   });
@@ -52,9 +54,7 @@ const evaluateAssessmentCompletion = async (assessment, child) => {
 
   const leanPreviousTests = assessmentTests.map((test) => test.toObject());
 
-  await createNextAssessment(child._id, leanPreviousTests);
-
-  reportService.generateReport(assessment.toObject(), leanPreviousTests).catch((err) => {});
+  assessmentEvents.emit('assessmentCompleted', { child, assessment: assessment.toObject(), tests: leanPreviousTests });
 
   return {
     status: 'completed',
@@ -65,4 +65,4 @@ const evaluateAssessmentCompletion = async (assessment, child) => {
   };
 };
 
-module.exports = { createNextAssessment, evaluateAssessmentCompletion };
+module.exports = { createNextAssessment, handleAssessmentOnCompletion };

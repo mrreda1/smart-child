@@ -14,6 +14,7 @@ const express = require('express');
 const { cleanupReqFile } = require('./middlewares/cleanupReqFile');
 
 require('./models/index');
+require('./events/subscribers/index');
 
 const APIVersion = '1';
 const app = express();

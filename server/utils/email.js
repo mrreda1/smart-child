@@ -3,6 +3,7 @@ const passwordResetTemplate = require('./../utils/templates/email-reset');
 const emailVerificationTemplate = require('./../utils/templates/email-verification');
 const { childLinkRequestTemplate } = require('./templates/child-link-request');
 const { acceptedTemplate, deniedTemplate } = require('./templates/coparent-reply');
+const { assessmentCompletedTemplate } = require('./templates/assessment-completion');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -72,6 +73,16 @@ exports.sendCoparentReply = async (action, data) => {
     recipientsEmail: data.user.email,
     subject,
     html: replyTemplate(data),
+  };
+
+  await sendEmail(options);
+};
+
+exports.sendAssessmentCompletionEmail = async (data) => {
+  const options = {
+    recipientsEmail: data.parent.email,
+    subject: 'Assessment completion',
+    html: assessmentCompletedTemplate(data.parent.name, data.child.name),
   };
 
   await sendEmail(options);
