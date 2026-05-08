@@ -64,7 +64,7 @@
   .overflow-y-auto,
   .overflow-x-auto,
   .overflow-hidden,
-  .max-h-[90vh] {
+  .max-h-\[90vh\] {
     overflow: visible !important;
     max-height: none !important;
     height: auto !important;

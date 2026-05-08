@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: `${__dirname}/../config.env` });
-
 const Test = require('../models/test');
 const Category = require('../models/category');
 const TestDesc = require('../models/testDesc');

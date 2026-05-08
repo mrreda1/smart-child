@@ -1,15 +1,15 @@
-import { defineConfig, loadEnv } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import checker from "vite-plugin-checker";
-import path from "path";
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import checker from 'vite-plugin-checker';
+import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, path.resolve(__dirname), "");
+  const env = loadEnv(mode, path.resolve(__dirname), '');
 
   return {
-    base: env.VITE_URL_BASENAME || "/",
+    base: env.VITE_URL_BASENAME || '/',
     plugins: [
       react(),
       tailwindcss(),
@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        '@': path.resolve(__dirname, './src'),
       },
     },
   };

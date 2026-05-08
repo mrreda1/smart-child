@@ -2,8 +2,6 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useReplyCoparent } from '@/hooks/coparent';
 import { useEffect } from 'react';
-import { toast } from 'react-toastify';
-import authService from '@/services/authService';
 
 const CoparentActionPage = () => {
   const { token } = useParams();
@@ -15,11 +13,7 @@ const CoparentActionPage = () => {
   const replyCoparentMutation = useReplyCoparent();
 
   useEffect(() => {
-    replyCoparentMutation.mutateAsync({ token, action }).catch((err) => {
-      toast.error(err.response.data.message);
-
-      err.response.status === 401 && authService.logout(4);
-    });
+    replyCoparentMutation.mutateAsync({ token, action }).catch((err) => {});
   }, []);
 
   const renderLoading = () => (
@@ -88,8 +82,6 @@ const CoparentActionPage = () => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6 bg-[#fafafa]">
       <div className="bg-white max-w-md w-full rounded-[2rem] shadow-sm border border-gray-100 p-8 md:p-10 flex flex-col items-center text-center relative overflow-hidden">
-        {!token || !action ? renderError() : null}
-
         {replyCoparentMutation.isPending && renderLoading()}
 
         {replyCoparentMutation.isSuccess && action === 'accept' && renderSuccessAccept()}
