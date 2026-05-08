@@ -21,8 +21,18 @@ const useSaveTestResults = () => {
   return useMutation({
     mutationFn: saveTestResults,
     onSuccess: (data) => {
-      if (data.assessmentState.status === 'completed')
+      if (data.assessmentState.status === 'completed') {
+        const { assessmentState } = data;
+
         queryClient.invalidateQueries({ queryKey: ['assignedAssessment'] });
+
+        queryClient.setQueryData(['currentChild'], (oldChildData) => {
+          return {
+            ...oldChildData,
+            num_of_stars: oldChildData.num_of_stars + assessmentState.completionPayload.TotalStarsEarned,
+          };
+        });
+      }
     },
   });
 };

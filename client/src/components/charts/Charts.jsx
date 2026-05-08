@@ -39,7 +39,7 @@ const MiniLineChart = ({ data, colorClass }) => {
 };
 
 const MemoryChartVisual = ({ data }) => {
-  const maxArl = 5;
+  const maxArl = Math.ceil(Math.max(5, ...data.map((d) => d.arl || 0)));
   const barW = 10;
   const arlPoints = data.map((d, i) => `${getX(i, data.length, 180, 10)},${100 - (d.arl / maxArl) * 100}`).join(' ');
 
@@ -107,7 +107,7 @@ const MemoryChartVisual = ({ data }) => {
 };
 
 const ReactionChartVisual = ({ data }) => {
-  const maxMrt = 2;
+  const maxMrt = Math.ceil(Math.max(2, ...data.map((d) => d.mrt || 0)));
   const barW = 10;
   const mrtPoints = data.map((d, i) => `${getX(i, data.length, 180, 10)},${100 - (d.mrt / maxMrt) * 100}`).join(' ');
 
@@ -257,7 +257,7 @@ const ColorChartVisual = ({ history, rgb }) => {
 };
 
 const HearingChartVisual = ({ data }) => {
-  const maxAarl = 5;
+  const maxAarl = Math.ceil(Math.max(5, ...data.map((d) => d.aarl || 0)));
   const barW = 10;
   const latencyPoints = data
     .map((d, i) => `${getX(i, data.length, 180, 10)},${100 - (d.aarl / maxAarl) * 100}`)
@@ -326,7 +326,7 @@ const HearingChartVisual = ({ data }) => {
 };
 
 const IqChartVisual = ({ data }) => {
-  const maxSpeed = 5;
+  const maxSpeed = Math.ceil(Math.max(5, ...data.map((d) => d.speed || 0)));
   const barW = 10;
   const speedPoints = data
     .map((d, i) => `${getX(i, data.length, 180, 10)},${100 - (d.speed / maxSpeed) * 100}`)
