@@ -5,12 +5,9 @@ import { Circle, Heart, Square, Star, Triangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const ColorGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const colorTest = testConfigs?.find((test) => test.name === 'Colors Identification');
+  const colorTest = data?.testsDescription?.find((test) => test.name === 'Colors Identification');
   const testDescription = colorTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const numRounds = testDescription?.config?.numRounds || 6;

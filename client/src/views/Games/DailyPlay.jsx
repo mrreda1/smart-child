@@ -246,23 +246,31 @@ export const DailyPlay = () => {
   }
 
   return (
-    <div className="min-h-screen bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]">
-      <div className="max-w-4xl mx-auto p-6 py-10 flex flex-col h-full">
-        <header className="flex items-center mb-10">
-          {currentTestIndex < assessmentTests.length - 1 && (
-            <button
-              onClick={() => navigate('/child/dashboard')}
-              className="bg-white border-2 border-gray-100 text-gray-600 px-5 py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold"
-            >
-              <ArrowLeft size={18} /> Quit
-            </button>
-          )}
-          <div className="bg-white px-5 py-3 rounded-full font-black text-xl m-auto flex items-center shadow-sm border-2 border-gray-100 text-gray-800 text-center">
-            {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
+    <div className="min-h-screen flex flex-col bg-sky-img font-sans relative select-none [-webkit-tap-highlight-color:transparent]">
+      <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 md:py-10 flex-1 flex flex-col">
+        <header className="flex items-center justify-between gap-2 sm:gap-3 mb-6 md:mb-10 w-full">
+          <div className="flex-1 flex justify-start">
+            {currentTestIndex < assessmentTests.length - 1 && (
+              <button
+                onClick={() => navigate('/child/dashboard')}
+                className="shrink-0 bg-white border-2 border-gray-100 text-gray-600 px-3 py-2 md:px-5 md:py-3 rounded-full hover:bg-gray-50 shadow-sm transition-colors flex items-center gap-2 font-bold text-sm md:text-base"
+              >
+                <ArrowLeft size={18} className="shrink-0" />
+                <span className="hidden sm:inline">Quit</span>
+              </button>
+            )}
           </div>
+
+          <div className="shrink-0 max-w-[65%] sm:max-w-[70%] flex justify-center">
+            <h1 className="bg-white px-4 py-2 md:px-5 md:py-3 rounded-full font-black text-xs sm:text-base md:text-xl shadow-sm border-2 border-gray-100 text-gray-800 text-center">
+              {`Test ${currentTestIndex + 1}/${assessmentTests.length} : ${gameDetails?.title} (${currentAssessTestObj?.difficulty})`}
+            </h1>
+          </div>
+
+          <div className="flex-1 pointer-events-none" aria-hidden="true" />
         </header>
 
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 w-full flex items-center justify-center relative">
           <GameRenderer
             gameId={currentGameName}
             difficulty={currentDifficulty}

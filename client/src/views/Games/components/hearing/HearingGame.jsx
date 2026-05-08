@@ -5,12 +5,9 @@ import { Volume2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const hearingTest = testConfigs?.find((test) => test.name === 'Sound Identification');
+  const hearingTest = data?.testsDescription?.find((test) => test.name === 'Sound Identification');
   const testDescription = hearingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const numOptions = testDescription?.config?.numOptions || 6;

@@ -4,12 +4,9 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const VisualSequenceGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const visualSeqTest = testConfigs?.find((test) => test.name === 'visual Sequence');
+  const visualSeqTest = data?.testsDescription?.find((test) => test.name === 'visual Sequence');
   const testDescription = visualSeqTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const seqLength = testDescription?.config?.seqLength || 4;

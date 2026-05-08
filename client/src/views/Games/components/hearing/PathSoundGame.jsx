@@ -4,11 +4,9 @@ import { playSound, playTone } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PathSoundGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
-  const pathSoundTest = testConfigs?.find((test) => test.name === 'Path Sound');
+  const { data, isLoading } = useGetTestsConfig();
+
+  const pathSoundTest = data?.testsDescription?.find((test) => test.name === 'Path Sound');
   const testDescription = pathSoundTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const seqLength = testDescription?.config?.seqLength || 4;

@@ -5,12 +5,9 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const oddOneOutTest = testConfigs?.find((test) => test.name === 'Odd One Out');
+  const oddOneOutTest = data?.testsDescription?.find((test) => test.name === 'Odd One Out');
   const testDescription = oddOneOutTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const maxRounds = testDescription?.config?.maxRounds || 5;

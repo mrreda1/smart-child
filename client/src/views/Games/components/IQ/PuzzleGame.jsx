@@ -5,12 +5,9 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const PuzzleGame = ({ onFinish, difficulty = 'medium', imageUrl = null }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const puzzleTest = testConfigs?.find((test) => test.name === 'Puzzle');
+  const puzzleTest = data?.testsDescription?.find((test) => test.name === 'Puzzle');
   const testDescription = puzzleTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const gridSize = testDescription?.config?.gridSize || 3;

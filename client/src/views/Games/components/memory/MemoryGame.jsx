@@ -5,12 +5,9 @@ import { Puzzle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const MemoryGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const matchingTest = testConfigs?.find((test) => test.name === 'Matching');
+  const matchingTest = data?.testsDescription?.find((test) => test.name === 'Matching');
   const testDescription = matchingTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
   const targetPairs = testDescription?.config?.targetPairs || 6;
 

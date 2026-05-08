@@ -5,12 +5,9 @@ import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
 
 export const ColorSortingGame = ({ onFinish, difficulty = 'medium' }) => {
-  const {
-    data: { testsDescription: testConfigs },
-    isLoading,
-  } = useGetTestsConfig();
+  const { data, isLoading } = useGetTestsConfig();
 
-  const colorSortTest = testConfigs?.find((test) => test.name === 'Color Sorting');
+  const colorSortTest = data?.testsDescription?.find((test) => test.name === 'Color Sorting');
   const testDescription = colorSortTest?.descriptions?.find((desc) => desc.difficulty === difficulty);
 
   const maxRounds = testDescription?.config?.maxRounds || 9;
