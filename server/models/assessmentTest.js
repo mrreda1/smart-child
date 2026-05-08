@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const AssessmentModel = require('./assessment');
 const TestModel = require('./test');
+const FileService = require('../services/FileService');
 
 const assessmentTestSchema = new mongoose.Schema({
   assessment_id: {
@@ -52,6 +53,35 @@ assessmentTestSchema.pre(/^find/, function (next) {
 
   this.populate({ path: 'test_id' });
   next();
+});
+
+assessmentTestSchema.pre('deleteMany', async function (next) {
+  const filter = this.getFilter();
+  const session = this.options?.session || this.$session?.();
+
+  try {
+    const testsToDelete = await this.model.find(filter).session(session);
+
+    if (!testsToDelete || testsToDelete.length === 0) return next();
+
+    const deleteFilePromises = testsToDelete.map((test) => {
+      const imageName = test.rawData?.image;
+
+      if (imageName) {
+        console.log(imageName);
+
+        return FileService.deleteFile(imageName);
+      }
+
+      return Promise.resolve();
+    });
+
+    await Promise.allSettled(deleteFilePromises);
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 assessmentTestSchema.set('toJSON', {
