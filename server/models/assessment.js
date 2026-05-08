@@ -32,6 +32,12 @@ assessmentSchema.virtual('report', {
   justOne: true,
 });
 
+assessmentSchema.virtual('tests', {
+  ref: 'AssessmentTest',
+  localField: '_id',
+  foreignField: 'assessment_id',
+});
+
 assessmentSchema.set('toObject', { virtuals: true });
 
 assessmentSchema.set('toJSON', {

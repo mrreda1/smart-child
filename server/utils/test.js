@@ -1,5 +1,7 @@
 const { assessmentThresholds: thresholds } = require('../constants/thresholds.js');
 
+const weights = require('../constants/weights.js');
+
 const determineState = (value, struggleLimit, masteryLimit, isHigherBetter = true) => {
   if (isHigherBetter) {
     if (value < struggleLimit) return 'struggle';

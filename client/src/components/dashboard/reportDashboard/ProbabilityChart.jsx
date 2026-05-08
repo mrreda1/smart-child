@@ -1,11 +1,5 @@
+import { formatEmotionLabel } from '@/utils/TextFormat';
 import { PieChart } from 'lucide-react';
-
-const formatEmotionLabel = (key) => {
-  return key
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' / ');
-};
 
 const ProbabilityChart = ({ classificationData }) => {
   if (!classificationData || !classificationData.probabilities) return null;

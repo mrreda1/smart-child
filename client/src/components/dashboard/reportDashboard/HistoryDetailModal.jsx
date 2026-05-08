@@ -15,6 +15,7 @@ import {
 import { THEME } from '@/constants/config';
 import { formatDate } from '@/utils/date';
 import { ProbabilityChart } from './ProbabilityChart';
+import { DifficultyBadge, DifficultyLabel } from '@/components/common/DifficultyLabel';
 
 // Map backend keys to human-readable titles, icons, and themes
 const CATEGORY_UI_MAP = {
@@ -73,20 +74,21 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
       <style type="text/css">
         {`
           @media screen {
-            body {
-              overflow: hidden !important;
-            }
+            body { overflow: hidden !important; }
           }
         `}
       </style>
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* Added print:static, print:bg-transparent, print:p-0, print:block, print:h-auto to flatten the overlay */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 print:static print:bg-transparent print:p-0 print:block print:h-auto">
+        {/* Added print:max-w-none, print:shadow-none, print:border-none, print:overflow-visible to let content flow naturally */}
         <div
-          className={`${THEME.cardWhite} w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto`}
+          className={`${THEME.cardWhite} w-full max-w-lg p-8 relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:shadow-none print:border-none print:overflow-visible print:p-0`}
         >
+          {/* Added print:hidden to Close button */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full"
+            className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full print:hidden"
           >
             <X size={20} />
           </button>
@@ -122,10 +124,13 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
               const IconComponent = uiConfig.icon;
 
               if (key === 'art') {
-                const { classifiction } = resultData;
+                const { classification } = resultData;
 
                 return (
-                  <div key={key} className={`bg-gray-50 p-5 rounded-xl border border-gray-100`}>
+                  <div
+                    key={key}
+                    className={`bg-gray-50 p-5 rounded-xl border border-gray-100 print:break-inside-avoid`}
+                  >
                     <div className="flex justify-between items-center mb-4">
                       <div className="font-bold text-gray-800 flex items-center gap-2">
                         <IconComponent size={18} className={uiConfig.color} />
@@ -152,7 +157,7 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
                       </div>
 
                       {/* The Chart Component */}
-                      <ProbabilityChart classificationData={classifiction} />
+                      <ProbabilityChart classificationData={classification} />
                     </div>
                   </div>
                 );
@@ -160,11 +165,12 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
 
               // Standard Metric Rendering for other categories
               return (
-                <div key={key} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div key={key} className="bg-gray-50 p-4 rounded-xl border border-gray-100 print:break-inside-avoid">
                   <div className="flex justify-between items-center mb-3">
                     <div className="font-bold text-gray-800 flex items-center gap-2">
                       <IconComponent size={18} className={uiConfig.color} />
                       {uiConfig.title}
+                      <DifficultyBadge difficulty={resultData.overallDifficulty} className="text-[10px] font-bold" />
                     </div>
                     {resultData.averageAccuracy !== undefined && (
                       <div className="font-black text-gray-900">{Math.round(resultData.averageAccuracy)}%</div>
@@ -194,8 +200,8 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
             })}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Added print:hidden to Action Buttons */}
+          <div className="flex gap-3 mt-6 print:hidden">
             <button
               onClick={onClose}
               className="flex-1 bg-gray-100 text-gray-700 font-bold py-3.5 rounded-full hover:bg-gray-200 transition-colors"
@@ -204,7 +210,7 @@ const HistoryDetailModal = ({ assessmentReport, onClose, onDownload }) => {
             </button>
             <button
               onClick={() => onDownload(assessmentReport)}
-              className={`flex-[2] ${THEME.primaryYellow} ${THEME.textBlack} font-black py-3.5 rounded-full ${THEME.primaryYellowHover} transition-colors flex items-center justify-center gap-2`}
+              className={`flex-[2] ${THEME.primaryYellow} ${THEME.textBlack} font-black py-3.5 rounded-full hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2`}
             >
               <Download size={18} /> Download Report
             </button>

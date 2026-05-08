@@ -1,3 +1,4 @@
+import { difficultyWeights } from '@/constants/testConfig';
 import { useGetCurrentChild } from '@/hooks/child';
 import { useGetDailyReports } from '@/hooks/report';
 import { formatDate } from '@/utils/date';
@@ -5,7 +6,7 @@ import { keepPreviousData } from '@tanstack/react-query';
 import { ChevronRight, FileText, Loader2, Puzzle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const historyLimit = 2;
+const historyLimit = 5;
 
 const ReportsSection = ({ child, onSelectHistoryItem }) => {
   const [page, setPage] = useState(1);
@@ -38,16 +39,19 @@ const ReportsSection = ({ child, onSelectHistoryItem }) => {
     if (!results) return 0;
     const categories = ['memory', 'reactionSpeed', 'colorExplore', 'hearing', 'iq'];
     let totalScore = 0;
-    let count = 0;
+    let weightSum = 0;
 
     categories.forEach((cat) => {
+      const catAccuracy = results[cat].averageAccuracy;
+      const catDifficulty = results[cat].overallDifficulty;
+
       if (results[cat]?.averageAccuracy !== undefined) {
-        totalScore += results[cat].averageAccuracy;
-        count++;
+        totalScore += catAccuracy * difficultyWeights[catDifficulty];
+        weightSum += difficultyWeights[catDifficulty];
       }
     });
 
-    return count > 0 ? Math.round(totalScore / count) : 0;
+    return weightSum > 0 ? Math.round(totalScore / weightSum) : 0;
   };
 
   if (isError) {
@@ -55,7 +59,7 @@ const ReportsSection = ({ child, onSelectHistoryItem }) => {
   }
 
   return (
-    <section>
+    <section className="print:hidden">
       <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
         <FileText size={24} className="text-pink-500" /> Assessment History
       </h2>
@@ -67,7 +71,7 @@ const ReportsSection = ({ child, onSelectHistoryItem }) => {
         <>
           <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
             {accumulatedAssesmentReports.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 font-bold">No assessments found.</div>
+              <p className="p-8 text-center text-gray-500 font-bold">No assessments found.</p>
             ) : (
               accumulatedAssesmentReports.map((assessmentReport) => {
                 const report = assessmentReport.report;

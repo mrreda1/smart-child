@@ -7,6 +7,7 @@ const AssessmentTestModel = require('../models/assessmentTest');
 const ParentChild = require('../models/parentChild');
 const catchAsync = require('../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes');
+const OverallReportModel = require('../models/overallReport');
 
 const getChild = handlerFactory.getOne(ChildModel);
 
@@ -67,6 +68,8 @@ const createChild = catchAsync(async (req, res, next) => {
   });
 
   await AssessmentTestModel.insertMany(assessmentTests);
+
+  await OverallReportModel.create({ child_id: newChild._id });
 
   res.status(StatusCodes.CREATED).json({
     status: 'success',

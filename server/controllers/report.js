@@ -1,5 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
-const { AssessmentModel } = require('../models/index');
+const { AssessmentModel, CategoryModel, TestModel, OverallReportModel } = require('../models/index');
+const AppError = require('../utils/appError');
+const { StatusCodes } = require('http-status-codes/build/cjs');
 
 const getDailyReports = catchAsync(async (req, res, next) => {
   const { childId } = req.params;
@@ -9,12 +11,12 @@ const getDailyReports = catchAsync(async (req, res, next) => {
 
   const skip = (page - 1) * limit;
 
-  let assessments = await AssessmentModel.find({ child_id: childId, status: 'completed' })
+  const assessments = await AssessmentModel.find({ child_id: childId, status: 'completed' })
     .select('_id')
-    .populate({ path: 'report', justOne: true })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate({ path: 'report' });
 
   const totalItems = await AssessmentModel.countDocuments({ child_id: childId, status: 'completed' });
 
@@ -31,4 +33,32 @@ const getDailyReports = catchAsync(async (req, res, next) => {
   });
 });
 
-module.exports = { getDailyReports };
+const getOverallReport = catchAsync(async (req, res, next) => {
+  const { childId } = req.params;
+
+  const overallReportPromise = OverallReportModel.findOne({ child_id: childId }).select('-child_id');
+
+  const dailyReportsPromise = AssessmentModel.find({ child_id: childId, status: 'completed' })
+    .select('_id')
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .populate({ path: 'report' });
+
+  let [overallReport, dailyReports] = await Promise.all([overallReportPromise, dailyReportsPromise]);
+
+  if (!overallReport) throw new AppError(`No report found for child_id: ${childId}`, StatusCodes.NOT_FOUND);
+
+  dailyReports.reverse();
+
+  dailyReports = dailyReports.map((dailyReport) => {
+    const reportObj = dailyReport.report.toObject();
+
+    const { art, ...resultsWithoutArt } = reportObj.results;
+
+    return resultsWithoutArt;
+  });
+
+  res.json({ data: { overallReport: { ...overallReport.toJSON(), dailyReports } } });
+});
+
+module.exports = { getDailyReports, getOverallReport };

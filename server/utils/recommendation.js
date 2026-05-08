@@ -21,31 +21,35 @@ const formatList = (items) => {
   return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
 };
 
-function generateGeneralRecommendation(userData) {
+function generateGeneralRecommendation(reportResult) {
   const evaluations = [];
 
-  // 2. Map the user data keys
   const mappings = [
-    { name: 'Memory', data: userData.memory, th: thresholds.Memory, accKey: 'accuracy', speedKey: 'latencyMs' },
+    { name: 'Memory', data: reportResult.memory, th: thresholds.Memory, accKey: 'accuracy', speedKey: 'latencyMs' },
     {
       name: 'Reaction Speed',
-      data: userData.reactionSpeed,
+      data: reportResult.reactionSpeed,
       th: thresholds['Reaction Speed'],
       accKey: 'precision',
       speedKey: 'responseTimeMs',
     },
     {
       name: 'Color Exploration',
-      data: userData.colorExplore,
+      data: reportResult.colorExplore,
       th: thresholds['Color Explore'],
       accKey: 'accuracy',
       speedKey: null,
     },
-    { name: 'Hearing', data: userData.hearing, th: thresholds.Hearing, accKey: 'successRate', speedKey: 'latencyMs' },
-    { name: 'IQ', data: userData.iq, th: aggregatedIqThresholds, accKey: 'accuracy', speedKey: 'responseTimeMs' },
+    {
+      name: 'Hearing',
+      data: reportResult.hearing,
+      th: thresholds.Hearing,
+      accKey: 'successRate',
+      speedKey: 'latencyMs',
+    },
+    { name: 'IQ', data: reportResult.iq, th: aggregatedIqThresholds, accKey: 'accuracy', speedKey: 'responseTimeMs' },
   ];
 
-  // 3. Process the data
   mappings.forEach((map) => {
     if (map.data && map.th) {
       const accState = determineState(

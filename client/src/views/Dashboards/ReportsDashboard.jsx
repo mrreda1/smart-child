@@ -1,56 +1,56 @@
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { MOCK_HISTORY_DATA, MOCK_REPORTS_DATA } from '@/constants/mockData';
 
 import DashboardHeader from '@/components/dashboard/reportDashboard/Header';
 import ProgressSection from '@/components/dashboard/reportDashboard/ProgressSection';
 import ReportsSection from '@/components/dashboard/reportDashboard/HistorySection';
 import HistoryDetailModal from '@/components/dashboard/reportDashboard/HistoryDetailModal';
-import PrintViewModal from '@/components/dashboard/reportDashboard/PrintViewModal';
+import { useGetOverallReport } from '@/hooks/report';
+import GamifiedLoader from '@/components/common/GamifiedLoader';
 
 const ReportsDashboard = () => {
   const { state } = useLocation();
 
   if (!state || !state.child) return <Navigate to="/parent/dashboard" />;
 
-  const [activePrintReport, setActivePrintReport] = useState(null);
   const [selectedAssessmentReport, setselectedAssessmentReport] = useState(null);
 
-  const child = state.child;
+  const selectedChild = state.child;
 
-  const handlePrint = (reportType, payload = null) => {
-    setActivePrintReport({ type: reportType, data: payload });
+  const getOverallReportQuery = useGetOverallReport({ params: { childId: selectedChild.id } });
+
+  const handlePrint = () => {
     setTimeout(() => {
       window.print();
-    }, 500);
+    }, 100);
   };
+
+  if (!getOverallReportQuery.isSuccess) return <GamifiedLoader />;
 
   return (
     <>
       {/* Global Print Styles */}
-      <style>{`@media print { body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none !important; } @page { margin: 15mm; size: A4 portrait; } }`}</style>
+      <style>{`
+        @media print { body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display: none !important; } @page { margin: 15mm; size: A4 portrait; } }
+          
+      `}</style>
 
-      <div className={`no-print ${activePrintReport ? 'hidden' : 'block'}`}>
-        <DashboardHeader child={child} onPrintOverall={() => handlePrint('overall')} />
+      {/* Main Dashboard - Hides during print ONLY if a modal is open */}
+      <div className={`${selectedAssessmentReport ? 'print:hidden' : 'block'}`}>
+        <DashboardHeader child={selectedChild} reportsData={getOverallReportQuery.data} onPrintOverall={handlePrint} />
 
-        <ProgressSection reportsData={MOCK_REPORTS_DATA} />
+        <ProgressSection reportsData={getOverallReportQuery.data} selectedChild={selectedChild} />
 
-        <ReportsSection child={child} onSelectHistoryItem={setselectedAssessmentReport} />
+        <ReportsSection child={selectedChild} onSelectHistoryItem={setselectedAssessmentReport} />
       </div>
 
+      {/* Assessment Modal - Prints cleanly without the background */}
       {selectedAssessmentReport && (
         <HistoryDetailModal
           assessmentReport={selectedAssessmentReport}
           onClose={() => setselectedAssessmentReport(null)}
-          onDownload={(assessmentReport) => {
-            handlePrint('individual', assessmentReport);
-            setselectedAssessmentReport(null);
-          }}
+          onDownload={handlePrint}
         />
-      )}
-
-      {activePrintReport && (
-        <PrintViewModal printState={activePrintReport} child={child} onClose={() => setActivePrintReport(null)} />
       )}
     </>
   );

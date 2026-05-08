@@ -1,1 +1,2 @@
 require('./assessmentSubscriber');
+require('./overallReportSubscriber');

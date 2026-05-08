@@ -30,6 +30,7 @@ export const PlayWarningModal = ({ onClose, profile }) => {
           </button>
           <button
             onClick={handleContinue}
+            disabled={switchToChildMutation.isPending}
             className={`flex-1 ${THEME.primaryYellow} ${THEME.textBlack} font-bold py-3.5 rounded-full hover:bg-[#E5B427] transition-colors flex items-center justify-center gap-2`}
           >
             Continue

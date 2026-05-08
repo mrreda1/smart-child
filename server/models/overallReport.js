@@ -2,29 +2,44 @@ const mongoose = require('mongoose');
 
 const ChildModel = require('./child');
 
-const overallReportSchema = new mongoose.Schema({
-  child_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Child',
-    required: true,
-    unique: true,
+const overallReportSchema = new mongoose.Schema(
+  {
+    child_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Child',
+      required: true,
+      unique: true,
+    },
+    overall_system_recommendation: {
+      type: mongoose.Schema.Types.String,
+      default: '',
+    },
+    overall_growth_percentage: {
+      type: mongoose.Schema.Types.Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    overall_feeling: {
+      type: mongoose.Schema.Types.String,
+      enum: ['happiness', 'anxiety_depression', 'anger_aggression', 'N/A'],
+      default: 'N/A',
+      required: true,
+    },
+    color_radar_profile: {
+      red: { type: mongoose.Schema.Types.Number, default: 0, min: 0, max: 100 },
+      green: { type: mongoose.Schema.Types.Number, default: 0, min: 0, max: 100 },
+      blue: { type: mongoose.Schema.Types.Number, default: 0, min: 0, max: 100 },
+    },
   },
-  system_recommendation: {
-    type: String,
-    trim: true,
-  },
-  overall_growth_percentage: {
-    type: Number,
-    min: 0,
-    max: 100,
-  },
-  overall_feeling: {
-    type: String,
-    enum: ['Happy', 'Sad', 'Angry', 'Fear'],
-  },
-  last_updated: {
-    type: Date,
-    default: Date.now,
+  { timestamps: true },
+);
+
+overallReportSchema.set('toJSON', {
+  virtuals: true,
+  transform: function (doc, ret) {
+    delete ret._id;
+    delete ret.__v;
   },
 });
 

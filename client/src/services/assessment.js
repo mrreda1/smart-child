@@ -9,6 +9,8 @@ const getAssignedAssessment = async () => {
 };
 
 const getAssessmentTests = async ({ assessmentId }) => {
+  console.log(assessmentId);
+
   const res = await apiClient.get(`${assessmentStartEndpoint}/${assessmentId}/tests`);
 
   return res.data.assessmentTests;

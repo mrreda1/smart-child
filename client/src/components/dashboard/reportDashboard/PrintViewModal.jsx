@@ -107,15 +107,11 @@ const PrintViewModal = ({ printState, child, onClose }) => {
                 </div>
 
                 <h3 className="text-xl font-black text-gray-900 mb-3 border-b border-gray-100 pb-2 print:text-lg">
-                  System Recommendation
+                  General System Recommendation
                 </h3>
                 <div className="bg-blue-50 p-6 rounded-2xl mb-8 border border-blue-100 text-blue-900 font-medium leading-relaxed text-lg print:text-sm print:p-4 print:mb-6">
                   {OVERALL_RECOMMENDATION}
                 </div>
-
-                <h3 className="text-xl font-black text-gray-900 mb-4 border-b border-gray-100 pb-2 print:text-lg">
-                  Test Trajectories
-                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 print:grid-cols-2 print:gap-4">
                   {Object.entries(MOCK_REPORTS_DATA)
                     .filter(([key]) => key !== 'drawing')

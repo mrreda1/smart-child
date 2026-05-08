@@ -2,4 +2,6 @@ const EventEmitter = require('events');
 
 const assessmentEvents = new EventEmitter();
 
-module.exports = { assessmentEvents };
+const overallReportEvents = new EventEmitter();
+
+module.exports = { assessmentEvents, overallReportEvents };

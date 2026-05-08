@@ -48,6 +48,8 @@ const assessmentTestSchema = new mongoose.Schema({
 assessmentTestSchema.index({ assessment_id: 1, test_id: 1 }, { unique: true });
 
 assessmentTestSchema.pre(/^find/, function (next) {
+  if (this.getOptions().skipAutoPopulate) return next();
+
   this.populate({ path: 'test_id' });
   next();
 });

@@ -51,7 +51,7 @@ const handleDrawingTestResult = async (req) => {
 
   if (!req.file) throw new AppError('Image field is required', StatusCodes.BAD_REQUEST);
 
-  const { emotion } = await imageService.classifyImage(req.file);
+  const classification = await imageService.classifyImage(req.file);
 
   assessmentTest.rawData = { image: req.file.filename };
 
@@ -59,7 +59,7 @@ const handleDrawingTestResult = async (req) => {
 
   assessmentTest.results = evaluateMetrices(assessmentTest);
 
-  assessmentTest.results.metrics.emotion = emotion;
+  assessmentTest.results.metrics.classification = classification;
 
   const starDelta = calculateStarDelta(assessmentTest.results.difficultyAction, assessmentTest.difficulty, true);
 

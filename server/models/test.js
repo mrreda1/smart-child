@@ -31,6 +31,8 @@ testSchema.virtual('descriptions', {
 });
 
 testSchema.pre(/^find/, function (next) {
+  if (this.getOptions().skipAutoPopulate) return next();
+
   this.populate({ path: 'category_id' });
   next();
 });
