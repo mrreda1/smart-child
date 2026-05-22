@@ -8,6 +8,7 @@ const coparentRouter = require(`${__dirname}/routes/coparent`);
 const testRouter = require(`${__dirname}/routes/test`);
 const assessmentRouter = require(`${__dirname}/routes/assessment`);
 const reportRouter = require(`${__dirname}/routes/report`);
+const storyRouter = require(`${__dirname}/routes/story`);
 
 const setupMiddlewares = require(`${__dirname}/utils/middlewares`);
 
@@ -37,6 +38,8 @@ app.use(`/api/v${APIVersion}/test`, testRouter);
 app.use(`/api/v${APIVersion}/assessment`, assessmentRouter);
 
 app.use(`/api/v${APIVersion}/report`, reportRouter);
+
+app.use(`/api/v${APIVersion}/story`, storyRouter);
 
 // Error handler for invalid routes
 app.all('*', (req, res, next) => {

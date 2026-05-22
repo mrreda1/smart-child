@@ -57,7 +57,7 @@ const setupRateLimiting = (app) => {
 };
 
 const setupStaticFiles = (app) => {
-  app.use(express.static(`${__dirname}/../public/`));
+  app.use('/public', express.static(`${__dirname}/../public/`));
   app.use('/uploads', express.static(`${__dirname}/../uploads`));
 };
 

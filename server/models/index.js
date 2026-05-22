@@ -8,6 +8,7 @@ const ParentModel = require('./parent');
 const ParentChildModel = require('./parentChild');
 const TestModel = require('./test');
 const TestDescModel = require('./testDesc');
+const StoryModel = require('./story');
 const TokenModel = require('./token');
 
 module.exports = {
@@ -22,4 +23,5 @@ module.exports = {
   TestModel,
   TestDescModel,
   TokenModel,
+  StoryModel,
 };
