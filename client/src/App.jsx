@@ -32,6 +32,7 @@ import { JwtProvider } from './context/JwtProvider';
 import { FreePlayMenu } from './views/Games/FreePlayMenu';
 import { FreePlay } from './views/Games/FreePlay';
 import { DailyPlay } from './views/Games/DailyPlay';
+import StoryPage from './views/StoryPage';
 
 const basename = import.meta.env.VITE_URL_BASENAME;
 
@@ -82,6 +83,7 @@ export default function App() {
                   <Route path="free-play" element={<FreePlayMenu />} />
                   <Route path="free-play-game" element={<FreePlay />} />
                   <Route path="daily-play" element={<DailyPlay />} />
+                  <Route path="story" element={<StoryPage />} />
                 </Route>
               </Route>
 

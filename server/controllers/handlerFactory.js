@@ -103,7 +103,7 @@ exports.getOne = (Model, sendResponse = true) =>
 
 exports.getMany = (Model) =>
   catchAsync(async (req, res, next) => {
-    const features = new APIFeatures(Model.find(), req.query).sort().limit().filter().paginate();
+    const features = new APIFeatures(Model.find(), req.query).sort().select().filter().paginate();
 
     const docs = await features.query;
 

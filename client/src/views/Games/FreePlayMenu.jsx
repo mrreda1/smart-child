@@ -14,6 +14,7 @@ import {
   PenTool,
   Puzzle,
   Search,
+  Smile,
   Star,
   Zap,
 } from 'lucide-react';
@@ -104,8 +105,8 @@ export const FreePlayMenu = () => {
           >
             <ArrowLeft size={18} /> Back
           </button>
-          <div className="bg-white px-5 py-2.5 rounded-full font-black text-lg flex items-center shadow-sm border-2 border-gray-100 text-gray-800">
-            <Star size={20} className="mr-2 text-yellow-400 fill-yellow-400" /> {globalStars} Stars
+          <div className="bg-white px-6 py-3 rounded-full font-black text-2xl flex items-center shadow-sm border-2 border-gray-100 text-[#4ade80]">
+            <Smile size={24} className="mr-2" /> Free Play
           </div>
         </header>
         {isLoading ? (

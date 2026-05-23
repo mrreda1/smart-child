@@ -13,7 +13,14 @@ const verifyTokenAndParent = async (req) => {
 
   const token = req.headers.authorization.split(' ')[1];
 
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  let decoded;
+
+  try {
+    decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  } catch (err) {
+    err.statusCode = StatusCodes.UNAUTHORIZED;
+    throw err;
+  }
 
   const parentId = decoded.parent?.id || decoded.id;
 

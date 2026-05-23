@@ -1,15 +1,16 @@
 import GamifiedLoader from '@/components/common/GamifiedLoader';
 import InputField from '@/components/common/InputField';
-import { THEME } from '@/constants/config';
+import { IS_DEV, THEME } from '@/constants/config';
 import { useJwt } from '@/context/JwtProvider';
 import { useSwitchToParent } from '@/hooks/auth';
 import { useGetCurrentChild } from '@/hooks/child';
-import { Lock, Puzzle, Smile, Star, X } from 'lucide-react';
+import { BookOpen, Lock, Puzzle, Smile, Star, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetTestsConfig } from '@/hooks/test';
 import { useGetAssignedAssessment } from '@/hooks/assessment';
+import { useGetStories } from '@/hooks/story';
 
 const ChildDashboard = () => {
   const navigate = useNavigate();
@@ -89,8 +90,8 @@ const ChildDashboard = () => {
             </div>
           </header>
           <div
-            className="text-center mb-16 animate-in slide-in-from-top duration-700 cursor-pointer"
-            onClick={() => setIsTestLocked(!isTestLocked)}
+            className={`text-center mb-16 animate-in slide-in-from-top duration-700 ${IS_DEV && 'cursor-pointer'}`}
+            onClick={() => IS_DEV && setIsTestLocked(!isTestLocked)}
             title="Click to toggle lock state"
           >
             <img
@@ -102,7 +103,9 @@ const ChildDashboard = () => {
               Hi, {childProfile.name}! 👋
             </h1>
             <p className="text-xl text-gray-500 mt-4 font-bold">What are we playing today?</p>
-            <p className="text-xs text-gray-400 mt-2 font-medium">(Click name to toggle lock demo)</p>
+            {IS_DEV && (
+              <p className="text-xs text-gray-400 mt-2 font-medium select-none">(Click name to toggle lock demo)</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-auto mb-10 animate-in slide-in-from-bottom duration-700">
@@ -119,11 +122,7 @@ const ChildDashboard = () => {
               <div
                 className={`${isTestLocked ? 'bg-gray-400' : 'bg-white/20 group-hover:scale-110'} p-6 rounded-full mb-6 transition-transform backdrop-blur-sm`}
               >
-                {isTestLocked ? (
-                  <Lock className="w-14 h-14 text-white" />
-                ) : (
-                  <Puzzle className="w-14 h-14 text-white" fill="currentColor" />
-                )}
+                {isTestLocked ? <Lock className="w-14 h-14 text-white" /> : <Puzzle className="w-14 h-14 text-white" />}
               </div>
               <h2 className="text-4xl font-black tracking-tight mb-2">Daily Tests</h2>
               {isTestLocked ? (
@@ -144,15 +143,25 @@ const ChildDashboard = () => {
               className="bg-[#4ade80] text-white p-10 rounded-[2.5rem] shadow-sm hover:-translate-y-2 transition-all flex flex-col items-center justify-center text-center group border-b-8 border-[#3bca70]"
             >
               <div className="bg-white/20 p-6 rounded-full mb-6 group-hover:scale-110 transition-transform backdrop-blur-sm">
-                <Smile className="w-14 h-14 text-white" fill="currentColor" />
+                <Smile className="w-14 h-14 text-white" />
               </div>
               <h2 className="text-4xl font-black tracking-tight mb-2">Free Play</h2>
               <p className="text-green-100 font-bold text-lg">Practice & Draw for Fun</p>
             </button>
+
+            <button
+              onClick={() => navigate('/child/story')}
+              className="md:col-span-2 bg-[#a855f7] text-white p-10 rounded-[2.5rem] shadow-sm hover:-translate-y-2 transition-all flex flex-col items-center justify-center text-center group border-b-8 border-[#9333ea]"
+            >
+              <div className="bg-white/20 p-6 rounded-full mb-6 group-hover:scale-110 transition-transform backdrop-blur-sm">
+                <BookOpen className="w-14 h-14 text-white" />
+              </div>
+              <h2 className="text-4xl font-black tracking-tight mb-2">Story Time</h2>
+              <p className="text-purple-100 font-bold text-lg">Read & Imagine!</p>
+            </button>
           </div>
         </div>
       )}
-
       {/* Parent Gate Modal */}
       {showExitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">

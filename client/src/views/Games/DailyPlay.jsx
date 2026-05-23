@@ -83,12 +83,12 @@ export const DailyPlay = () => {
       try {
         await Promise.all(pendingSaveRequests.current); // Wait Other Tests Result Requests If Exist Before Completing The Assessment
         const { assessmentState } = await handleSubmitTest(metrics); // Submit Last Test
-        if (assessmentState.status === 'completed') {
+        if (assessmentState.status === 'completed')
           setSessionStarsEarned(assessmentState.completionPayload.TotalStarsEarned);
-          setGameOver(true);
-        }
       } catch (err) {
         IS_DEV && console.error(err);
+      } finally {
+        setGameOver(true);
       }
     }
   };
@@ -162,8 +162,8 @@ export const DailyPlay = () => {
             <ArrowLeft size={16} /> Back
           </button>
 
-          <div className="bg-white border border-gray-200 px-5 py-2 rounded-full font-black text-gray-800 shadow-sm text-sm">
-            Daily Tests
+          <div className="bg-white px-6 py-3 rounded-full font-black text-xl flex items-center shadow-sm border-2 border-gray-100 text-[#ff6b6b]">
+            <Puzzle size={24} className="mr-2" /> Daily Tests
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export const DailyPlay = () => {
           >
             {/* Map through the API response directly */}
             {assessmentTests.map((item, index) => {
-              const testName = item.test.name;
+              const testName = item.test?.name;
               const details = TEST_DETAILS[testName];
 
               if (!details) return null;
