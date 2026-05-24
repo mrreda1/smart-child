@@ -1,4 +1,5 @@
-import { HEARING_ITEMS, SOUNDS } from '@/assets';
+import { SOUNDS } from '@/assets';
+import { HEARING_ITEMS, MEDIUM_HEARING_ITEMS, HARD_HEARING_ITEMS } from '@/constants/testData';
 import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { Volume2 } from 'lucide-react';
@@ -31,16 +32,46 @@ export const HearingGame = ({ onFinish, difficulty = 'medium' }) => {
   useEffect(() => {
     if (isLoading) return;
 
+    let availableItems = [...HEARING_ITEMS];
+
+    if (difficulty === 'medium') {
+      availableItems = [...HEARING_ITEMS, ...MEDIUM_HEARING_ITEMS];
+    } else if (difficulty === 'hard') {
+      availableItems = [...HEARING_ITEMS, ...MEDIUM_HEARING_ITEMS, ...HARD_HEARING_ITEMS];
+    }
+
     const generatedRounds = [];
-    const shuffledTargets = [...HEARING_ITEMS].sort(() => Math.random() - 0.5);
-    const safeNumRounds = Math.min(numRounds, HEARING_ITEMS.length);
+    const shuffledTargets = [...availableItems].sort(() => Math.random() - 0.5);
+    const safeNumRounds = Math.min(numRounds, availableItems.length);
 
     for (let i = 0; i < safeNumRounds; i++) {
       const targetItem = shuffledTargets[i];
-      const distractors = HEARING_ITEMS.filter((item) => item.id !== targetItem.id).sort(() => Math.random() - 0.5);
-      const options = [targetItem, ...distractors.slice(0, numOptions - 1)].sort(() => Math.random() - 0.5);
-      generatedRounds.push({ options, targetItem });
+      let distractors = availableItems.filter((item) => item.id !== targetItem.id);
+
+      let roundOptions = [];
+
+      if (difficulty === 'hard') {
+        const confusingPair = availableItems.find(
+          (item) => item.confusesWith === targetItem.id || targetItem.confusesWith === item.id,
+        );
+
+        if (confusingPair) {
+          roundOptions.push(confusingPair);
+          distractors = distractors.filter((item) => item.id !== confusingPair.id);
+        }
+      }
+
+      distractors = distractors.sort(() => Math.random() - 0.5);
+
+      const remainingSlots = numOptions - 1 - roundOptions.length;
+
+      const finalOptions = [targetItem, ...roundOptions, ...distractors.slice(0, remainingSlots)].sort(
+        () => Math.random() - 0.5,
+      );
+
+      generatedRounds.push({ options: finalOptions, targetItem });
     }
+
     setRounds(generatedRounds);
 
     return () => {

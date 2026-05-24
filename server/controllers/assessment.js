@@ -71,8 +71,6 @@ const handleDrawingTestResult = async (req) => {
 const handleTestsResult = async (req) => {
   const assessmentTest = req.assessmentTest;
 
-  console.log(req.body);
-
   req.body = JSON.parse(req.body.testData);
 
   if (Object.keys(req.body).length === 0) {

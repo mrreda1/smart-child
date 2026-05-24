@@ -1,5 +1,5 @@
 import { SOUNDS } from '@/assets';
-import { SIMILAR_PAIRS } from '@/constants/testData';
+import { CATEGORICAL_SETS } from '@/constants/testData';
 import { useGetTestsConfig } from '@/hooks/test';
 import { playSound } from '@/utils/sound';
 import { useEffect, useState } from 'react';
@@ -24,24 +24,41 @@ export const OddOneOutGame = ({ onFinish, difficulty = 'medium' }) => {
   useEffect(() => {
     if (isLoading || round >= maxRounds) return;
 
-    const diffPairs = SIMILAR_PAIRS[difficulty] || SIMILAR_PAIRS.medium;
-    const selectedPair = diffPairs[Math.floor(Math.random() * diffPairs.length)];
+    // 1. Grab the correct difficulty sets
+    const diffSets = CATEGORICAL_SETS[difficulty] || CATEGORICAL_SETS.medium;
 
-    const isReversed = Math.random() > 0.5;
-    const baseEmoji = isReversed ? selectedPair[1] : selectedPair[0];
-    const oddEmoji = isReversed ? selectedPair[0] : selectedPair[1];
+    // 2. Pick a random categorical rule for this round
+    const selectedSet = diffSets[Math.floor(Math.random() * diffSets.length)];
 
-    const newItems = Array(4)
-      .fill(null)
-      .map((_, i) => ({
-        id: i,
-        emoji: baseEmoji,
-        isOdd: false,
+    // 3. Shuffle the base category using .sort() and grab exactly 3 distinct items
+    const shuffledBase = [...selectedSet.base].sort(() => Math.random() - 0.5);
+    const chosenBaseItems = shuffledBase.slice(0, 3);
+
+    // 4. Shuffle the odd category using .sort() and grab exactly 1 item
+    const shuffledOdd = [...selectedSet.odd].sort(() => Math.random() - 0.5);
+    const chosenOddItem = shuffledOdd[0];
+
+    // 5. Assemble the un-shuffled board
+    const newItems = chosenBaseItems.map((emoji) => ({
+      emoji: emoji,
+      isOdd: false,
+    }));
+
+    // Add the odd one out
+    newItems.push({
+      emoji: chosenOddItem,
+      isOdd: true,
+    });
+
+    // 6. Shuffle the final board using .sort() and assign React keys (ids) dynamically
+    const finalOptions = newItems
+      .sort(() => Math.random() - 0.5)
+      .map((item, index) => ({
+        ...item,
+        id: index,
       }));
 
-    newItems[Math.floor(Math.random() * 4)] = { id: 3, emoji: oddEmoji, isOdd: true };
-
-    setItems(newItems.sort(() => Math.random() - 0.5).map((item, i) => ({ ...item, id: i })));
+    setItems(finalOptions);
   }, [round, difficulty, maxRounds, isLoading]);
 
   useEffect(() => {
