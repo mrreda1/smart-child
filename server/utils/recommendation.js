@@ -1,4 +1,4 @@
-const { determineState } = require('../utils/test');
+const { determineState } = require('./testEvaluation');
 
 const { assessmentThresholds: thresholds } = require('../constants/thresholds');
 

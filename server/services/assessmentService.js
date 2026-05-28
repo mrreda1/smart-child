@@ -2,7 +2,7 @@ const { StatusCodes } = require('http-status-codes/build/cjs');
 const { TestModel, AssessmentTestModel, AssessmentModel } = require('../models/index');
 const AppError = require('../utils/appError');
 
-const { buildAdaptiveTestsPayload } = require('../utils/test');
+const { buildAdaptiveTestsPayload } = require('../utils/testEvaluation');
 
 const reportService = require('./reportService');
 

@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 
 const AppError = require('../utils/appError');
 
-const { evaluateMetrices, calculateStarDelta } = require('../utils/test');
+const { evaluateMetrices, calculateStarDelta } = require('../utils/testEvaluation');
 
 const { AssessmentModel, AssessmentTestModel } = require('../models/index');
 

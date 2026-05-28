@@ -203,4 +203,5 @@ module.exports = {
   calculateNewDifficulty,
   buildAdaptiveTestsPayload,
   determineState,
+  getDifficultyAction,
 };

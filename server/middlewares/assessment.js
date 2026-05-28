@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const { AssessmentModel, TestModel, AssessmentTestModel } = require('../models/index');
 const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes/build/cjs');
-const { buildAdaptiveTestsPayload } = require('../utils/test');
+const { buildAdaptiveTestsPayload } = require('../utils/testEvaluation');
 
 const populateChildAssessment = (extractAssessmentId) =>
   catchAsync(async (req, res, next) => {

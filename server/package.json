@@ -41,6 +41,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
-    "inspect": "^0.0.2"
+    "inspect": "^0.0.2",
+    "jest": "^30.4.2"
   }
 }

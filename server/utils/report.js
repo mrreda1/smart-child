@@ -192,7 +192,6 @@ const calcReportsAvg = (reports) => {
   categories.forEach((cat) => {
     if (totals[cat].count > 0) {
       combinedResults[cat] = {
-        // Divide sum by count and round to 2 decimal places
         averageAccuracy: Number((totals[cat].sumAccuracy / totals[cat].count).toFixed(2)),
         averageSpeedMs: Number((totals[cat].sumSpeed / totals[cat].count).toFixed(2)),
       };

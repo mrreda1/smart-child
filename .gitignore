@@ -34,3 +34,6 @@ pnpm-debug.log*
 /**/uploads/profiles/*
 
 !/**/uploads/profiles/default-user.jpg
+
+# testing
+coverage
