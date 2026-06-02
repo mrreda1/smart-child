@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon --env-file=.env.development server.js",
     "start:prod": "node --env-file=.env.production server.js",
     "debug": "node --inspect server.js",

@@ -4,8 +4,8 @@ const assessmentThresholds = {
     latencyMs: { struggle: 3500, mastery: 1800 },
   },
   ['Reaction Speed']: {
-    responseTimeMs: { struggle: 1000, mastery: 600 },
     precision: { struggle: 50, mastery: 85 },
+    responseTimeMs: { struggle: 1000, mastery: 600 },
   },
   ['Color Explore']: {
     accuracy: { struggle: 65, mastery: 85 },

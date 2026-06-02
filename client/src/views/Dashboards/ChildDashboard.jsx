@@ -90,8 +90,8 @@ const ChildDashboard = () => {
             </div>
           </header>
           <div
-            className={`text-center mb-16 animate-in slide-in-from-top duration-700 ${IS_DEV && 'cursor-pointer'}`}
-            onClick={() => IS_DEV && setIsTestLocked(!isTestLocked)}
+            className={`text-center mb-16 animate-in slide-in-from-top duration-700 cursor-pointer`} //${IS_DEV && 'cursor-pointer'}
+            onClick={() => setIsTestLocked(!isTestLocked)} //IS_DEV && setIsTestLocked(!isTestLocked)
             title="Click to toggle lock state"
           >
             <img
@@ -106,6 +106,10 @@ const ChildDashboard = () => {
             {IS_DEV && (
               <p className="text-xs text-gray-400 mt-2 font-medium select-none">(Click name to toggle lock demo)</p>
             )}
+
+            {/* {IS_DEV && (
+              <p className="text-xs text-gray-400 mt-2 font-medium select-none">(Click name to toggle lock demo)</p>
+            )} */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-auto mb-10 animate-in slide-in-from-bottom duration-700">
