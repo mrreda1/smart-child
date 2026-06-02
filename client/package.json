@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "gh-pages -d dist -b prod",
+    "deploy": "gh-pages -d dist --repo https://github.com/Ahmed2872003/smart-child-front.git",
     "lint": "eslint .",
     "preview": "vite preview"
   },

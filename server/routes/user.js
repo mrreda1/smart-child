@@ -21,13 +21,9 @@ router
 
 router
   .route('/delete/:id')
-  .delete(
-    authMiddleware.protect,
-    parentChecksMiddleware.restrictTo('admin'),
-    parentController.deleteUser,
-  );
+  .delete(authMiddleware.protect, parentChecksMiddleware.restrictTo('admin'), parentController.deleteUser);
 
-router.route('/').get(parentController.getAllUsers);
+// router.route('/').get(parentController.getAllUsers);
 
 router.route('/:id').get(parentController.getUser);
 

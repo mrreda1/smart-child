@@ -7,12 +7,13 @@ const { assessmentCompletedTemplate } = require('./templates/assessment-completi
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL,
     pass: process.env.EMAIL_APP_PASSWORD,
   },
+  family: 4,
 });
 
 const sendEmail = async (options) => {
