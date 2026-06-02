@@ -1,5 +1,3 @@
-const dotenv = require('dotenv');
-
 const connectDB = require('./models/db/connect');
 
 const app = require(`${__dirname}/app`);
