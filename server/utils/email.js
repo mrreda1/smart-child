@@ -1,30 +1,58 @@
-const nodemailer = require('nodemailer');
 const passwordResetTemplate = require('./../utils/templates/email-reset');
 const emailVerificationTemplate = require('./../utils/templates/email-verification');
 const { childLinkRequestTemplate } = require('./templates/child-link-request');
 const { acceptedTemplate, deniedTemplate } = require('./templates/coparent-reply');
 const { assessmentCompletedTemplate } = require('./templates/assessment-completion');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-  family: 4,
-});
+// const transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     user: process.env.EMAIL,
+//     pass: process.env.EMAIL_APP_PASSWORD,
+//   },
+//   family: 4,
+// });
+
+// const sendEmail = async (options) => {
+//   await transporter.sendMail({
+//     from: '"Smart Child" <smartchildorg@gmail.com>',
+//     to: options.recipientsEmail,
+//     subject: options.subject,
+//     html: options.html,
+//   });
+
+//   console.log('Email has been successfully sent!');
+// };
 
 const sendEmail = async (options) => {
-  await transporter.sendMail({
-    from: '"Smart Child" <smartchildorg@gmail.com>',
-    to: options.recipientsEmail,
-    subject: options.subject,
-    html: options.html,
-  });
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: { name: 'Smart Child', email: 'amohammedmorsy@gmail.com' },
+        to: [{ email: options.recipientsEmail }],
+        subject: options.subject,
+        htmlContent: options.html,
+      }),
+    });
 
-  console.log('Email has been successfully sent!');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Email API rejected request: ${JSON.stringify(errorData)}`);
+    }
+
+    console.log('Email has been successfully sent via HTTP!');
+  } catch (error) {
+    console.error('Email Error:', error.message);
+    throw error;
+  }
 };
 
 exports.sendPasswordResetTokenEmail = async (user, token, expireTimeInMinutes) => {
