@@ -56,9 +56,9 @@ const testsDescription = {
   },
 
   'Bug Catch': {
-    easy: { initialTime: 25, bugLifespan: 1000, objectSize: 'large' },
-    medium: { initialTime: 20, bugLifespan: 700, objectSize: 'normal' },
-    hard: { initialTime: 15, bugLifespan: 580, objectSize: 'tiny' },
+    easy: { initialTime: 25, bugLifespan: 1300, objectSize: 'large' },
+    medium: { initialTime: 20, bugLifespan: 1150, objectSize: 'normal' },
+    hard: { initialTime: 15, bugLifespan: 950, objectSize: 'tiny' },
   },
 
   'Light Reaction': { easy: { totalRounds: 5 }, medium: { totalRounds: 8 }, hard: { totalRounds: 10 } },
