@@ -62,7 +62,6 @@ export default function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
-                  <Route path="/reset-password/:token" element={<ResetPassword />} />
                 </Route>
               </Route>
               {/* Parent Routes */}
@@ -72,10 +71,13 @@ export default function App() {
                   <Route path="profile" element={<ParentProfile />} />
                   <Route path="child/reports" element={<ReportsDashboard />} />
                 </Route>
-                <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
-                <Route path="/access-decision/:token" element={<CoparentActionPage />} />
               </Route>
 
+              <Route path="/access-decision/:token" element={<CoparentActionPage />} />
+              <Route element={<AuthLayoutWrapper />}>
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
+              </Route>
               {/* Child Routes */}
               <Route element={<ProtecteRoute allowedRole={'child'} />}>
                 <Route path="/child">

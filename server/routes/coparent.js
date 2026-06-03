@@ -7,10 +7,9 @@ const parentChecksMiddleware = require('../middlewares/parentChecks');
 const parentChildMiddleware = require('../middlewares/parentChild');
 const tokenMiddleware = require('../middlewares/token');
 
-router.use(authMiddleware.protect);
-
 router.post(
   '/',
+  authMiddleware.protect,
   parentChecksMiddleware.restrictToVerified,
   parentChildMiddleware.populateChildPrimaryParent,
   coparentController.requestCoParentAccess,
@@ -19,8 +18,6 @@ router.post(
 router.patch(
   '/:token',
   tokenMiddleware.resolveCoparentToken((req) => req.params.token),
-  parentChildMiddleware.checkParentChildLink((req) => req.pendingLink.child_id),
-  parentChildMiddleware.checkParentChildOwnership((req) => req.parentChildLink),
   coparentController.populateCoparentRequestData,
   coparentController.replyCoParentAcess,
 );
