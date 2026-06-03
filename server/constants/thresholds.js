@@ -18,7 +18,7 @@ const assessmentThresholds = {
   IQ: {
     'Odd One Out': {
       accuracy: { struggle: 60, mastery: 80 },
-      responseTimeMs: { struggle: 4000, mastery: 1500 },
+      responseTimeMs: { struggle: 7000, mastery: 3000 },
     },
     Puzzle: {
       accuracy: { struggle: 60, mastery: 80 },
