@@ -2,6 +2,10 @@
 
 This project is structured as a full-stack monorepo containing both a frontend `client` and a backend `server`. Follow the instructions below to set up and run the application.
 
+## 🌐 Live Demo
+
+Check out the live application here: **[smart-child-self.vercel.app](https://smart-child-self.vercel.app)**
+
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed on your machine:
