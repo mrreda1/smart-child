@@ -1,9 +1,7 @@
 import { THEME } from '@/constants/config';
 import { LinkIcon, Plus, Smile } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-// Imports
 import { ProfileCard } from '@/components/dashboard/parentDashboard/ProfileCard';
 
 import { ProfileModal, LinkModal, PlayWarningModal, DeleteModal } from '@/components/dashboard/parentDashboard/modals';
@@ -11,8 +9,6 @@ import { useGetChildren } from '@/hooks/child';
 import GamifiedLoader from '@/components/common/GamifiedLoader';
 
 const ParentDashboard = () => {
-  const navigate = useNavigate();
-
   const childrenQuery = useGetChildren();
 
   const [activeModal, setActiveModal] = useState(null); // null, "ADD", "EDIT", "LINK", "DELETE", "PLAY_WARNING"
@@ -39,6 +35,7 @@ const ParentDashboard = () => {
 
   return (
     <>
+      {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">Dashboard</h1>
@@ -52,6 +49,7 @@ const ParentDashboard = () => {
         </button>
       </div>
 
+      {/* Managed Profiles Section */}
       <section className="mb-12">
         <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">Managed Profiles</h2>
         {ownerProfiles.length === 0 ? (
@@ -80,8 +78,22 @@ const ParentDashboard = () => {
         )}
       </section>
 
+      {/* Linked Profiles Section */}
       <section>
-        <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">Linked Profiles</h2>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">Linked Profiles</h2>
+
+          {/* Mobile-only Link button - only shows if there are profiles (empty state has its own button) */}
+          {linkedProfiles.length > 0 && (
+            <button
+              onClick={() => openModal('LINK')}
+              className="sm:hidden bg-white border border-gray-200 text-gray-700 font-bold px-6 py-3 rounded-full hover:bg-gray-50 transition-colors shadow-sm flex items-center justify-center gap-2 w-full"
+            >
+              <LinkIcon size={18} /> Link Profile
+            </button>
+          )}
+        </div>
+
         {linkedProfiles.length === 0 ? (
           <div className="border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-[2rem] p-12 flex flex-col items-center justify-center text-center min-h-[300px]">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-gray-300 mb-4 shadow-sm">
@@ -108,9 +120,11 @@ const ParentDashboard = () => {
                 onPlay={() => openModal('PLAY_WARNING', pc.child)}
               />
             ))}
+
+            {/* The large dashed card is hidden on mobile (sm:hidden reverse -> hidden sm:flex) */}
             <div
               onClick={() => openModal('LINK')}
-              className="border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-[2rem] p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-yellow-400 hover:bg-yellow-50/30 transition-all min-h-[300px]"
+              className="hidden sm:flex border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-[2rem] p-8 flex-col items-center justify-center text-center cursor-pointer hover:border-yellow-400 hover:bg-yellow-50/30 transition-all min-h-[300px]"
             >
               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 text-gray-300 shadow-sm group-hover:scale-110 transition-transform">
                 <Plus size={24} strokeWidth={3} />
