@@ -201,6 +201,11 @@ const calcReportsAvg = (reports) => {
   return combinedResults;
 };
 
+const formatOverallReport = (report) =>
+  report
+    ? `Overall growth: ${report.overall_growth_percentage}% | Emotional state: ${report.overall_feeling} | Recommendation: ${report.overall_system_recommendation}`
+    : '';
+
 module.exports = {
   aggregateColorRadar,
   getOverallFeeling,
@@ -208,4 +213,5 @@ module.exports = {
   groupedByCategory,
   aggregateMetrices,
   calcReportsAvg,
+  formatOverallReport,
 };

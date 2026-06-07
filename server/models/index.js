@@ -10,6 +10,8 @@ const TestModel = require('./test');
 const TestDescModel = require('./testDesc');
 const StoryModel = require('./story');
 const TokenModel = require('./token');
+const ChatSessionModel = require('./chatSession');
+const ChatMessageModel = require('./chatMessage');
 
 module.exports = {
   AssessmentModel,
@@ -24,4 +26,6 @@ module.exports = {
   TestDescModel,
   TokenModel,
   StoryModel,
+  ChatSessionModel,
+  ChatMessageModel,
 };
