@@ -1,15 +1,10 @@
 const { StatusCodes } = require('http-status-codes/build/cjs');
-
 const { ChatMessageModel, ChatSessionModel, OverallReportModel } = require('../models/index');
-
 const catchAsync = require('../utils/catchAsync');
 const { cleanStreamText } = require('../utils/text');
 const AppError = require('../utils/appError');
-
 const { formatOverallReport } = require('../utils/report');
-
 const chatbotService = require('../services/chatbotService');
-
 const handlerFactory = require('./handlerFactory');
 
 const getMsgs = handlerFactory.getMany(ChatMessageModel);
@@ -20,9 +15,14 @@ const sendMsg = catchAsync(async (req, res, next) => {
 
   isStream = isStream === 'true';
 
-  if (!message) throw new AppError('Message can not be empty', StatusCodes.BAD_REQUEST);
-
   const history = (await ChatMessageModel.find({ sessionId }).sort('-createdAt').limit(10)).reverse(); // Last 10 msgs
+
+  // --- Use the propagated session object to update the topic ---
+  if (history.length === 0) {
+    req.chatSession.topic = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+    await req.chatSession.save(); // Saves the modification directly
+  }
+  // ------------------------------------------------------------------------
 
   await ChatMessageModel.create({ sessionId, sender: 'parent', content: message });
 
@@ -30,10 +30,8 @@ const sendMsg = catchAsync(async (req, res, next) => {
     role: msg.sender === 'parent' ? 'user' : 'assistant',
     content: msg.content,
   }));
-  console.log(formattedHistory);
 
   const overallReport = (await OverallReportModel.findOne({ child_id: req.child._id }))?.toObject();
-
   const formattedReport = formatOverallReport(overallReport);
 
   const aiPayload = {
@@ -79,7 +77,6 @@ const handleStreamResponse = (res, response, sessionId) => {
     } catch (dbError) {
       console.error('Failed to save streamed message to DB:', dbError.message);
     }
-
     res.end();
   });
 
@@ -92,9 +89,7 @@ const handleStreamResponse = (res, response, sessionId) => {
 
 const handleJsonResponse = async (res, response, sessionId) => {
   const aiReplyText = response.data.reply;
-
   await ChatMessageModel.create({ sessionId, sender: 'AI', content: aiReplyText });
-
   return res.status(StatusCodes.OK).json(response.data);
 };
 

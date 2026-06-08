@@ -18,6 +18,7 @@ const chatSessionSchema = new mongoose.Schema(
     topic: {
       type: mongoose.Schema.Types.String,
       required: true,
+      default: 'New Session',
     },
   },
   { timestamps: true },

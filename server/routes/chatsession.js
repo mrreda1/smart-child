@@ -6,6 +6,18 @@ const chatSessionController = require('../controllers/chatSession');
 
 router.use(authMiddleware.protect);
 
+router.post(
+  '/',
+  (req, res, next) => {
+    req.body.parentId = req.user._id;
+
+    console.log(req.body);
+
+    next();
+  },
+  chatSessionController.createSession,
+);
+
 router.get(
   '/',
   (req, res, next) => {
