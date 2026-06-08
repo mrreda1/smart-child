@@ -25,9 +25,17 @@ const chatSessionSchema = new mongoose.Schema(
 );
 
 chatSessionSchema.pre('save', function (next) {
-  if (this.isModified('topic') && this.topic) {
+  if (this.isNew || (this.isModified('topic') && this.topic)) {
     const key = process.env.ENCRYPTION_KEY;
     this.topic = encryptText(key, this.topic);
+  }
+  next();
+});
+
+chatSessionSchema.post('save', function (doc, next) {
+  if (doc.topic) {
+    const key = process.env.ENCRYPTION_KEY;
+    doc.topic = decryptText(key, doc.topic);
   }
   next();
 });
