@@ -98,7 +98,7 @@ export const ProfileCard = ({ profile, isLinked, onEdit, onDelete, onPlay, onVie
             </button>
             <button
               onClick={() => setIsChatModalOpen(true)}
-              className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded-full transition-colors text-sm flex justify-center items-center gap-2 border border-indigo-100"
+              className="flex-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-bold py-3 rounded-full transition-colors text-sm flex justify-center items-center gap-2 border border-yellow-100"
             >
               <Bot size={18} /> Ask AI
             </button>

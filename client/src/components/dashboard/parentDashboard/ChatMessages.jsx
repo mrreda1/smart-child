@@ -1,23 +1,11 @@
 import { Bot, Menu, MessageSquare, Send, X, Loader2 } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
-import { useGetSessionMsgs } from '@/hooks/chatMsgs';
+import { useGetSessionMsgs, useChatWithStream } from '@/hooks/chatMsgs';
 
-const limit = 4;
+const limit = 6;
 
-export const ChatMessages = ({
-  profile,
-  activeSession,
-  setActiveSession,
-  setSessions,
-  currentSession,
-  hasSessions,
-  onClose,
-  setShowMobileSidebar,
-}) => {
-  const queryClient = useQueryClient();
-
+export const ChatMessages = ({ profile, activeSession, currentSession, onClose, setShowMobileSidebar }) => {
   // Local state
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -39,13 +27,13 @@ export const ChatMessages = ({
 
   const isOptimisticSwapRef = useRef(false);
 
-  // 1. React to activeSession changes
+  const chatWithStreamMutation = useChatWithStream();
+
   useEffect(() => {
     if (isOptimisticSwapRef.current) {
       isOptimisticSwapRef.current = false;
       return;
     }
-
     if (!activeSession) {
       setMessages([]);
       return;
@@ -56,28 +44,14 @@ export const ChatMessages = ({
     isAtBottomRef.current = true;
     isPaginatingRef.current = false;
 
-    if (currentSession?.topic === 'New Conversation' || activeSession === 'new') {
-      setMessages([
-        {
-          _id: `greeting-${activeSession}`,
-          sessionId: activeSession,
-          sender: 'AI',
-          content: `Hi! How can I help you regarding ${profile?.name} today?`,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    } else {
-      setMessages([]);
-    }
-  }, [activeSession, currentSession?.topic, profile?.name]);
-
+    setMessages([]);
+  }, [activeSession]);
   // 2. Fetch messages
   const { data: msgsData, isFetching: isFetchingMsgs } = useGetSessionMsgs(
     { query: { sessionId: activeSession, sort: '-createdAt', limit, page } },
-    { staleTime: Infinity, enabled: !!activeSession && activeSession !== 'new' },
+    { staleTime: Infinity, enabled: !!activeSession },
   );
 
-  // 3. Sync fetched API messages
   useEffect(() => {
     const incomingMsgs = msgsData?.chatmessageList || [];
 
@@ -89,9 +63,35 @@ export const ChatMessages = ({
 
     if (incomingMsgs.length > 0) {
       setMessages((prev) => {
-        const newMsgs = incomingMsgs.filter((incoming) => !prev.some((existing) => existing._id === incoming._id));
-        if (newMsgs.length > 0) {
-          return [...prev, ...newMsgs];
+        let updatedMessages = [...prev];
+        let stateChanged = false;
+
+        incomingMsgs.forEach((incoming) => {
+          // 1. Check if we already have this exact real ID
+          const existsById = updatedMessages.find((m) => m._id === incoming._id);
+
+          if (!existsById) {
+            // 2. Try to find a temporary message that matches the incoming one
+            // We match by sender and exact content
+            const tempIndex = updatedMessages.findIndex(
+              (m) => m.isOptimistic && m.sender === incoming.sender && m.content === incoming.content,
+            );
+
+            if (tempIndex !== -1) {
+              // 🌟 MATCH FOUND! Swap the fake temp message for the real server message
+              updatedMessages[tempIndex] = incoming;
+              stateChanged = true;
+            } else {
+              // It's a completely new message (e.g., from scrolling up to load history)
+              updatedMessages.push(incoming);
+              stateChanged = true;
+            }
+          }
+        });
+
+        // 3. Only trigger a re-render if we actually changed something
+        if (stateChanged) {
+          return updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         }
         return prev;
       });
@@ -139,65 +139,57 @@ export const ChatMessages = ({
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim() || isTyping || !activeSession) return;
+    if (!input.trim() || isTyping || chatWithStreamMutation.isPending || !activeSession) return;
 
-    const isFirstMessage = activeSession === 'new';
     const messageContent = input;
+    const tempUserMsgId = Date.now().toString();
+    const tempAiMsgId = `ai-stream-${tempUserMsgId}`; // A unique ID for the streaming message
 
-    const newMessage = {
-      _id: Date.now().toString(),
-      sessionId: activeSession,
-      sender: 'parent',
-      content: messageContent,
-      createdAt: new Date().toISOString(),
-    };
+    // 1. Instantly add BOTH the user's message AND an empty AI placeholder to the screen
+    setMessages((prev) => [
+      ...prev,
+      {
+        _id: tempUserMsgId,
+        sessionId: activeSession,
+        sender: 'parent',
+        content: messageContent,
+        createdAt: new Date().toISOString(),
+        isOptimistic: true,
+      },
+      {
+        _id: tempAiMsgId,
+        sessionId: activeSession,
+        sender: 'AI',
+        content: '', // Starts completely empty
+        isStreaming: true, // Custom flag so we know it's live
+        isOptimistic: true,
+      },
+    ]);
 
-    setMessages((prev) => [...prev, newMessage]);
     setInput('');
-    setIsTyping(true);
+    setIsTyping(true); // Bouncy dots while we wait for the first network byte
 
     try {
-      const serverReturnedSessionId = isFirstMessage ? `real-session-${Date.now()}` : activeSession;
+      // 2. Call the API and update the specific AI message in the array word-by-word
+      await chatWithStreamMutation.mutateAsync({
+        sessionId: activeSession,
+        childId: profile?.id,
+        message: messageContent,
+        onChunk: (chunkText) => {
+          setMessages((prev) =>
+            prev.map((msg) => (msg._id === tempAiMsgId ? { ...msg, content: msg.content + chunkText } : msg)),
+          );
+        },
+      });
+      setIsTyping(false);
 
-      if (isFirstMessage) {
-        isOptimisticSwapRef.current = true;
-        if (setActiveSession) setActiveSession(serverReturnedSessionId);
-
-        setMessages((prev) =>
-          prev.map((msg) => (msg.sessionId === 'new' ? { ...msg, sessionId: serverReturnedSessionId } : msg)),
-        );
-
-        if (setSessions) {
-          const newSidebarSession = {
-            _id: serverReturnedSessionId,
-            topic: messageContent.substring(0, 30) + (messageContent.length > 30 ? '...' : ''),
-            createdAt: new Date().toISOString(),
-          };
-          setSessions((prev) => [newSidebarSession, ...prev.filter((s) => s._id !== 'new')]);
-        }
-
-        queryClient.invalidateQueries({
-          queryKey: ['chat-sessions', profile?._id],
-        });
-      }
-
-      replyTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-        const botReply = {
-          _id: (Date.now() + 1).toString(),
-          sessionId: serverReturnedSessionId,
-          sender: 'AI',
-          content: `Thanks for asking about ${profile?.name}. Based on their data, I'm analyzing your request...`,
-          createdAt: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, botReply]);
-      }, 2000);
+      setMessages((prev) => prev.map((msg) => (msg._id === tempAiMsgId ? { ...msg, isStreaming: false } : msg)));
     } catch (error) {
       console.error('Failed to send message:', error);
       setIsTyping(false);
+      setMessages((prev) => prev.filter((msg) => msg._id !== tempAiMsgId));
     }
   };
-
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
@@ -251,7 +243,7 @@ export const ChatMessages = ({
               </div>
             </div>
             <p className="text-xs text-gray-500 font-medium truncate max-w-[200px] sm:max-w-[300px]">
-              {currentSession?.topic || (!hasSessions ? 'No active sessions' : 'New Conversation')}
+              {currentSession?.topic}
             </p>
           </div>
         </div>
@@ -316,8 +308,15 @@ export const ChatMessages = ({
                       : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
                   }`}
                 >
+                  {/* Render the text */}
                   {m.content}
+
+                  {/* 🌟 Add a blinking cursor if this specific message is currently streaming */}
+                  {m.isStreaming && (
+                    <span className="inline-block w-1.5 h-4 ml-1 bg-gray-400 animate-pulse align-middle" />
+                  )}
                 </div>
+
                 <span
                   className={`text-[11px] text-gray-400 mt-1 px-1 ${m.sender === 'parent' ? 'text-right' : 'text-left'}`}
                 >
@@ -330,51 +329,60 @@ export const ChatMessages = ({
           </>
         )}
 
-        {/* Typing Indicator */}
+        {/* Typing Indicator
         {isTyping && (
           <div className="bg-white border border-gray-100 text-gray-800 self-start rounded-2xl rounded-bl-sm max-w-[85%] px-4 py-4 shadow-sm flex items-center gap-1.5 w-[72px] shrink-0">
             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
           </div>
-        )}
+        )} */}
         <div ref={messagesEndRef} className="h-1 shrink-0" />
       </div>
 
       {/* Input Form */}
       <div className="p-3 md:p-4 bg-white border-t border-gray-100">
-        <form
-          onSubmit={handleSend}
-          className="max-w-4xl mx-auto flex gap-2 items-end bg-gray-50 p-1.5 rounded-3xl border border-gray-200 focus-within:ring-2 focus-within:ring-[#FFC107]/30 focus-within:border-[#FFC107] transition-all"
-        >
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isTyping || !activeSession}
-            placeholder={
-              !activeSession
-                ? 'Create a new chat to message...'
-                : isTyping
-                  ? 'Waiting for response...'
-                  : `Ask something about ${profile?.name}...`
-            }
-            className="flex-1 bg-transparent text-[15px] px-4 py-3 outline-none resize-none max-h-32 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
-            rows={1}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend(e);
-              }
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || !activeSession || isTyping}
-            className="bg-[#FFC107] text-black p-3 rounded-full hover:bg-yellow-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 mb-1 mr-1 shadow-sm"
-          >
-            <Send size={20} className="ml-0.5" />
-          </button>
-        </form>
+        {activeSession && !isFetchingMsgs && (
+          <>
+            <form
+              onSubmit={handleSend}
+              className="max-w-4xl mx-auto flex gap-2 items-end bg-gray-50 p-1.5 rounded-3xl border border-gray-200 focus-within:ring-2 focus-within:ring-[#FFC107]/30 focus-within:border-[#FFC107] transition-all"
+            >
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={isTyping}
+                placeholder={
+                  !activeSession
+                    ? 'Create a new chat to message...'
+                    : isTyping
+                      ? 'Waiting for response...'
+                      : `Ask something about ${profile?.name}...`
+                }
+                className="flex-1 bg-transparent text-[15px] px-4 py-3 outline-none resize-none max-h-32 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
+                }}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isTyping}
+                className="bg-[#FFC107] text-black p-3 rounded-full hover:bg-yellow-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 mb-1 mr-1 shadow-sm"
+              >
+                <Send size={20} className="ml-0.5" />
+              </button>
+            </form>
+            <div className="text-center mt-2">
+              <p className="text-[10px] text-gray-400">
+                For better performance, the AI only remembers the last 10 messages of this conversation.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

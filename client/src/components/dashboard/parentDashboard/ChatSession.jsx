@@ -1,24 +1,77 @@
-import { formatDate } from '@/utils/date';
+import { useEffect, useState } from 'react';
 import { MessageSquare, Plus, Trash2, X, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { useDeleteChatSession } from '@/hooks/chatSession';
+import { formatDate } from '@/utils/date';
+import { useCreateSession, useDeleteChatSession, useGetChatSessions } from '@/hooks/chatSession';
 
 export const ChatSession = ({
   profile,
-  sessions,
-  setSessions,
   activeSession,
   setActiveSession,
+  setActiveSessionData,
   showMobileSidebar,
   setShowMobileSidebar,
-  onNewChat,
-  onLoadMore,
-  hasMore,
-  isFetching,
-  setMessages,
 }) => {
+  // Local State Management
+  const [sessions, setSessions] = useState([]);
+  const [page, setPage] = useState(1);
   const [sessionToDelete, setSessionToDelete] = useState(null);
+  const limit = 5;
+
+  // Hooks & Mutations
+  const { data: fetchedData, isFetching } = useGetChatSessions(
+    { query: { childId: profile?.id, sort: '-createdAt', limit, page } },
+    { enabled: !!profile?.id, staleTime: Infinity },
+  );
+  const createSessionMutation = useCreateSession();
   const deleteSessionMutation = useDeleteChatSession();
+
+  // 1. Reset states cleanly when modal opens for a new profile
+  useEffect(() => {
+    setPage(1);
+    setSessions([]);
+  }, [profile?.id]);
+
+  // 2. Accumulate fetched sessions over pages
+  useEffect(() => {
+    const incomingSessions = fetchedData?.chatsessionList || (Array.isArray(fetchedData) ? fetchedData : []);
+
+    if (incomingSessions.length > 0) {
+      setSessions((prev) => {
+        if (page === 1) return incomingSessions;
+        // Combine while ensuring no duplicates
+        const newSessions = incomingSessions.filter((ns) => !prev.some((es) => es._id === ns._id));
+        return [...prev, ...newSessions];
+      });
+    }
+  }, [fetchedData, page]);
+
+  // 3. Keep the parent Modal updated with the full session object (for the chat header topic)
+  useEffect(() => {
+    if (activeSession) {
+      const current = sessions.find((s) => s._id === activeSession);
+      if (current && setActiveSessionData) setActiveSessionData(current);
+    } else if (setActiveSessionData) {
+      setActiveSessionData(null);
+    }
+  }, [activeSession, sessions, setActiveSessionData]);
+
+  const hasMore = (fetchedData?.chatsessionList || []).length === limit;
+
+  // Actions
+  const handleLoadMore = () => setPage((prev) => prev + 1);
+
+  const handleNewChat = async () => {
+    try {
+      const data = await createSessionMutation.mutateAsync({ childId: profile.id });
+
+      setSessions((prev) => [data.chatsession, ...prev]);
+
+      setActiveSession(data.chatsession._id);
+      if (window.innerWidth < 768) setShowMobileSidebar(false);
+    } catch (err) {
+      console.error('Failed to create chat', err);
+    }
+  };
 
   const handleDeleteClick = (e, sessionId) => {
     e.stopPropagation();
@@ -28,31 +81,20 @@ export const ChatSession = ({
   const confirmDelete = () => {
     if (!sessionToDelete) return;
 
-    // Pass an object containing both IDs to the mutation
     deleteSessionMutation.mutate(
       { sessionId: sessionToDelete, childId: profile?.id },
       {
         onSuccess: () => {
-          // 1. Instantly remove from UI without losing loaded pages
-          if (setSessions) {
-            setSessions((prev) => prev.filter((s) => s._id !== sessionToDelete));
-          }
+          setSessions((prev) => prev.filter((s) => s._id !== sessionToDelete));
+          if (activeSession === sessionToDelete) setActiveSession(null);
 
-          if (activeSession === sessionToDelete) {
-            setActiveSession('new');
-          }
-          if (setMessages) {
-            setMessages((prev) => prev.filter((m) => m.sessionId !== sessionToDelete));
-          }
           setSessionToDelete(null);
         },
       },
     );
   };
 
-  const cancelDelete = () => {
-    setSessionToDelete(null);
-  };
+  const cancelDelete = () => setSessionToDelete(null);
 
   return (
     <>
@@ -78,10 +120,12 @@ export const ChatSession = ({
         {/* New Chat Button */}
         <div className="p-4">
           <button
-            onClick={onNewChat}
+            onClick={handleNewChat}
+            disabled={createSessionMutation.isPending}
             className="w-full bg-[#FFC107] hover:bg-yellow-400 text-black font-bold py-2.5 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2"
           >
-            <Plus size={18} /> New Chat
+            {createSessionMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
+            New Chat
           </button>
         </div>
 
@@ -99,7 +143,7 @@ export const ChatSession = ({
               <button
                 onClick={() => {
                   setActiveSession(session._id);
-                  if (window.innerWidth < 768) setShowMobileSidebar(false); // Auto-hide on mobile
+                  if (window.innerWidth < 768) setShowMobileSidebar(false);
                 }}
                 className="flex-1 flex items-center gap-3 overflow-hidden text-left pl-1"
               >
@@ -115,29 +159,25 @@ export const ChatSession = ({
               <button
                 onClick={(e) => handleDeleteClick(e, session._id)}
                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100 shrink-0"
-                title="Delete Session"
               >
                 <Trash2 size={16} />
               </button>
             </div>
           ))}
 
-          {/* Initial Loading State */}
           {sessions.length === 0 && isFetching && (
             <div className="text-center p-4 mt-4 flex items-center justify-center">
               <Loader2 className="animate-spin text-[#FFC82C]" size={32} />
             </div>
           )}
 
-          {/* Empty State */}
           {sessions.length === 0 && !isFetching && (
             <div className="text-center p-4 text-sm text-gray-400 mt-4">No chat history found.</div>
           )}
 
-          {/* Load More Button */}
           {hasMore && sessions.length > 0 && (
             <button
-              onClick={onLoadMore}
+              onClick={handleLoadMore}
               disabled={isFetching}
               className="w-full text-center py-3 mt-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
@@ -158,17 +198,17 @@ export const ChatSession = ({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={cancelDelete}
-                disabled={deleteSessionMutation.isPending || deleteSessionMutation.isLoading}
+                disabled={deleteSessionMutation.isPending}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                disabled={deleteSessionMutation.isPending || deleteSessionMutation.isLoading}
+                disabled={deleteSessionMutation.isPending}
                 className="px-4 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors shadow-sm disabled:opacity-50"
               >
-                {deleteSessionMutation.isPending || deleteSessionMutation.isLoading ? 'Deleting...' : 'Delete'}
+                {deleteSessionMutation.isPending ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
