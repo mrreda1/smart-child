@@ -9,7 +9,7 @@
   "scripts": {
     "test": "jest",
     "start": "nodemon --env-file=.env.development server.js",
-    "start:prod": "node --env-file=.env.production server.js",
+    "start:prod": "node --env-file=.env.development server.js",
     "debug": "node --inspect server.js",
     "seedTestData": "node --env-file=.env.development scripts/seedTestData.js",
     "seedTestData:prod": "node --env-file=.env.production scripts/seedTestData.js",

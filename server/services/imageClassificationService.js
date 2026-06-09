@@ -12,7 +12,7 @@ const classifyImage = async (imageFile) => {
   formData.append('file', fileStream, imageFile.filename);
 
   try {
-    const res = await apiClient.post('predict', formData, {
+    const res = await apiClient.post('emotion/predict', formData, {
       headers: {
         ...formData.getHeaders(),
       },

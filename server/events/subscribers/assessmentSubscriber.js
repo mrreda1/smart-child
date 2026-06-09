@@ -21,7 +21,7 @@ assessmentEvents.on('assessmentCompleted', async ({ child, assessment, tests }) 
     childWithParents.parents.forEach(({ parent_id: parent }) => {
       const data = { parent, child: { name: child.name } };
 
-      sendAssessmentCompletionEmail(data);
+      sendAssessmentCompletionEmail(data).catch((err) => {});
     });
   } catch (error) {
     console.error('Background task failed for assessment completion:', error);

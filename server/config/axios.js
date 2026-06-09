@@ -5,6 +5,7 @@ const apiClient = axios.create({
   timeout: 0,
   headers: {
     'Content-Type': 'application/json',
+    'X-API-Key': process.env.AI_MODELS_API_KEY,
   },
 });
 

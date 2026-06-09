@@ -6,7 +6,6 @@ const chat = async (data, isStream) => {
   try {
     const customHeaders = {
       ...(isStream && { Accept: 'text/event-stream' }),
-      'X-API-Key': process.env.AI_MODELS_API_KEY,
     };
 
     const response = await apiClient.post(`/chatbot/parent?stream=${isStream}`, data, {

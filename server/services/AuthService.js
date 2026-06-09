@@ -20,7 +20,7 @@ class AuthService {
     await parent.save({ validateBeforeSave: false });
 
     // Email failures won't crash the signup flow
-    mailer.sendEmailVerificationToken(parent, emailVerificationToken);
+    mailer.sendEmailVerificationToken(parent, emailVerificationToken).catch((e) => {});
   }
 }
 
