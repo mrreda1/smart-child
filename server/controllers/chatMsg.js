@@ -6,6 +6,7 @@ const AppError = require('../utils/appError');
 const { formatOverallReport } = require('../utils/report');
 const chatbotService = require('../services/chatbotService');
 const handlerFactory = require('./handlerFactory');
+const mongoose = require('mongoose');
 
 const getMsgs = handlerFactory.getMany(ChatMessageModel);
 
@@ -14,6 +15,9 @@ const sendMsg = catchAsync(async (req, res, next) => {
   let { stream: isStream = 'true' } = req.query;
 
   isStream = isStream === 'true';
+
+  const userMsgId = new mongoose.Types.ObjectId();
+  const aiMsgId = new mongoose.Types.ObjectId();
 
   const history = (await ChatMessageModel.find({ sessionId }).sort('-createdAt').limit(10)).reverse(); // Last 10 msgs
 
@@ -24,7 +28,12 @@ const sendMsg = catchAsync(async (req, res, next) => {
   }
   // ------------------------------------------------------------------------
 
-  await ChatMessageModel.create({ sessionId, sender: 'parent', content: message });
+  await ChatMessageModel.create({
+    _id: userMsgId,
+    sessionId,
+    sender: 'parent',
+    content: message,
+  });
 
   const formattedHistory = history.map((msg) => ({
     role: msg.sender === 'parent' ? 'user' : 'assistant',
@@ -45,16 +54,20 @@ const sendMsg = catchAsync(async (req, res, next) => {
   const response = await chatbotService.chat(aiPayload, isStream);
 
   if (isStream) {
-    handleStreamResponse(res, response, sessionId);
+    handleStreamResponse(res, response, sessionId, userMsgId, aiMsgId);
   } else {
     await handleJsonResponse(res, response, sessionId);
   }
 });
 
-const handleStreamResponse = (res, response, sessionId) => {
+const handleStreamResponse = (res, response, sessionId, userMsgId, aiMsgId) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Expose-Headers', 'X-User-Msg-Id, X-AI-Msg-Id');
+
+  res.setHeader('X-User-Msg-Id', userMsgId.toString());
+  res.setHeader('X-AI-Msg-Id', aiMsgId.toString());
 
   let fullAiMessage = '';
 
@@ -69,6 +82,7 @@ const handleStreamResponse = (res, response, sessionId) => {
     try {
       if (fullAiMessage.trim()) {
         await ChatMessageModel.create({
+          _id: aiMsgId,
           sessionId,
           sender: 'AI',
           content: fullAiMessage.trim(),

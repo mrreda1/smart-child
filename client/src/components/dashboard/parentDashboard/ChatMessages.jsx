@@ -3,6 +3,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { useGetSessionMsgs, useChatWithStream } from '@/hooks/chatMsgs';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 const limit = 6;
 
 export const ChatMessages = ({ profile, activeSession, currentSession, onClose, setShowMobileSidebar }) => {
@@ -29,6 +31,8 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
 
   const chatWithStreamMutation = useChatWithStream();
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (isOptimisticSwapRef.current) {
       isOptimisticSwapRef.current = false;
@@ -45,7 +49,10 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
     isPaginatingRef.current = false;
 
     setMessages([]);
+
+    return () => queryClient.removeQueries({ queryKey: ['session-msgs', activeSession], type: 'all' });
   }, [activeSession]);
+
   // 2. Fetch messages
   const { data: msgsData, isFetching: isFetchingMsgs } = useGetSessionMsgs(
     { query: { sessionId: activeSession, sort: '-createdAt', limit, page } },
@@ -55,6 +62,7 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
   useEffect(() => {
     const incomingMsgs = msgsData?.chatmessageList || [];
 
+    // Handle pagination status
     if (msgsData && incomingMsgs.length < limit) {
       setHasMore(false);
     } else if (msgsData) {
@@ -67,29 +75,17 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
         let stateChanged = false;
 
         incomingMsgs.forEach((incoming) => {
-          // 1. Check if we already have this exact real ID
-          const existsById = updatedMessages.find((m) => m._id === incoming._id);
+          // 1. Only check if we already have this exact real ID
+          const existsById = updatedMessages.some((m) => m._id === incoming._id);
 
+          // 2. If it doesn't exist, it's a historical message from a page load
           if (!existsById) {
-            // 2. Try to find a temporary message that matches the incoming one
-            // We match by sender and exact content
-            const tempIndex = updatedMessages.findIndex(
-              (m) => m.isOptimistic && m.sender === incoming.sender && m.content === incoming.content,
-            );
-
-            if (tempIndex !== -1) {
-              // 🌟 MATCH FOUND! Swap the fake temp message for the real server message
-              updatedMessages[tempIndex] = incoming;
-              stateChanged = true;
-            } else {
-              // It's a completely new message (e.g., from scrolling up to load history)
-              updatedMessages.push(incoming);
-              stateChanged = true;
-            }
+            updatedMessages.push(incoming);
+            stateChanged = true;
           }
         });
 
-        // 3. Only trigger a re-render if we actually changed something
+        // 3. Only trigger a re-render if we actually added older messages
         if (stateChanged) {
           return updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         }
@@ -97,8 +93,6 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
       });
     }
   }, [msgsData]);
-
-  const sortedMessages = [...messages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   // Smart Auto-Scroll and Absolute Scroll Lock
   useLayoutEffect(() => {
@@ -111,15 +105,15 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
       container.scrollTop = container.scrollHeight - distanceFromBottomRef.current;
 
       // Release the lock safely once the new messages have officially rendered into the DOM
-      if (sortedMessages.length > previousMessagesLengthRef.current) {
+      if (messages.length > previousMessagesLengthRef.current) {
         isPaginatingRef.current = false;
       }
-    } else if (isAtBottomRef.current || isTyping || (page === 1 && sortedMessages.length <= limit)) {
+    } else if (isAtBottomRef.current || isTyping || (page === 1 && messages.length <= limit)) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
 
-    previousMessagesLengthRef.current = sortedMessages.length;
-  }, [sortedMessages, isFetchingMsgs, isTyping, page]);
+    previousMessagesLengthRef.current = messages.length;
+  }, [messages, isFetchingMsgs, isTyping, page]);
 
   // Safety fallback: Release the pagination lock if fetching completes but no new messages were added
   useEffect(() => {
@@ -161,6 +155,7 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
         sessionId: activeSession,
         sender: 'AI',
         content: '', // Starts completely empty
+        createdAt: new Date().toISOString(),
         isStreaming: true, // Custom flag so we know it's live
         isOptimistic: true,
       },
@@ -170,24 +165,38 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
     setIsTyping(true); // Bouncy dots while we wait for the first network byte
 
     try {
-      // 2. Call the API and update the specific AI message in the array word-by-word
       await chatWithStreamMutation.mutateAsync({
         sessionId: activeSession,
         childId: profile?.id,
         message: messageContent,
+        onIdsReceived: ({ realUserMsgId, realAiMsgId }) => {
+          setMessages((prev) =>
+            prev.map((msg) => {
+              if (msg._id === tempUserMsgId) {
+                return { ...msg, _id: realUserMsgId, isOptimistic: false };
+              }
+              if (msg._id === tempAiMsgId) {
+                return { ...msg, _id: realAiMsgId, isOptimistic: false };
+              }
+              return msg;
+            }),
+          );
+        },
         onChunk: (chunkText) => {
           setMessages((prev) =>
-            prev.map((msg) => (msg._id === tempAiMsgId ? { ...msg, content: msg.content + chunkText } : msg)),
+            prev.map((msg) => (msg.isStreaming ? { ...msg, content: msg.content + chunkText } : msg)),
           );
         },
       });
+
       setIsTyping(false);
 
-      setMessages((prev) => prev.map((msg) => (msg._id === tempAiMsgId ? { ...msg, isStreaming: false } : msg)));
+      setMessages((prev) => prev.map((msg) => (msg.isStreaming ? { ...msg, isStreaming: false } : msg)));
     } catch (error) {
       console.error('Failed to send message:', error);
       setIsTyping(false);
-      setMessages((prev) => prev.filter((msg) => msg._id !== tempAiMsgId));
+
+      setMessages((prev) => prev.filter((msg) => msg._id !== tempAiMsgId && msg._id !== tempUserMsgId));
     }
   };
   const handleScroll = (e) => {
@@ -204,6 +213,8 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
     }
     setPage((prev) => prev + 1);
   };
+
+  console.log(messages);
 
   return (
     <div className="flex-1 flex flex-col h-full bg-white relative z-10 w-full">
@@ -267,18 +278,18 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
             <MessageSquare size={32} className="opacity-20" />
             <p>Select or create a new conversation to start.</p>
           </div>
-        ) : isFetchingMsgs && page === 1 && sortedMessages.length === 0 ? (
+        ) : isFetchingMsgs && page === 1 && messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="animate-spin text-[#FFC107]" size={32} />
           </div>
-        ) : sortedMessages.length === 0 ? (
+        ) : messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
             No messages in this conversation yet.
           </div>
         ) : (
           <>
             {/* See More Button */}
-            {activeSession !== 'new' && !isFetchingMsgs && hasMore && sortedMessages.length >= limit && (
+            {activeSession !== 'new' && !isFetchingMsgs && hasMore && messages.length >= limit && (
               <div className="flex justify-center py-3 shrink-0">
                 <button
                   onClick={handleLoadMore}
@@ -296,7 +307,7 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
               </div>
             )}
 
-            {sortedMessages.map((m) => (
+            {messages.map((m) => (
               <div
                 key={m._id}
                 className={`flex flex-col max-w-[85%] md:max-w-[75%] ${m.sender === 'parent' ? 'self-end' : 'self-start'}`}

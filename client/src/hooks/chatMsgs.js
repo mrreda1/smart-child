@@ -15,17 +15,9 @@ export const useGetSessionMsgs = (data, queryConfig) => {
   });
 };
 
-export const useChatWithStream = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ sessionId, childId, message, onChunk }) => {
-      return chatWithStream({ sessionId, childId, message, onChunk });
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['session-msgs', variables.sessionId],
-      });
+export const useChatWithStream = () =>
+  useMutation({
+    mutationFn: ({ sessionId, childId, message, onChunk, onIdsReceived }) => {
+      return chatWithStream({ sessionId, childId, message, onChunk, onIdsReceived });
     },
   });
-};
