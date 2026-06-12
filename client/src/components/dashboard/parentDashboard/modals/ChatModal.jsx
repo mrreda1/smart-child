@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChatSession } from '../ChatSession';
 import { ChatMessages } from '../ChatMessages';
+import { useJwt } from '@/context/JwtProvider';
 
 export const ChatModal = ({ onClose, profile }) => {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);

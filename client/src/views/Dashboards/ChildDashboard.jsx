@@ -4,13 +4,13 @@ import { IS_DEV, THEME } from '@/constants/config';
 import { useJwt } from '@/context/JwtProvider';
 import { useSwitchToParent } from '@/hooks/auth';
 import { useGetCurrentChild } from '@/hooks/child';
-import { BookOpen, Lock, Puzzle, Smile, Star, X } from 'lucide-react';
+import { BookOpen, Bot, Lock, Puzzle, Smile, Star, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetTestsConfig } from '@/hooks/test';
 import { useGetAssignedAssessment } from '@/hooks/assessment';
-import { useGetStories } from '@/hooks/story';
+import { ChatModal } from '../../components/dashboard/parentDashboard/modals/ChatModal';
 
 const ChildDashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ const ChildDashboard = () => {
   const [isTestLocked, setIsTestLocked] = useState(true);
   const [countdown, setCountdown] = useState('');
   const [showExitModal, setShowExitModal] = useState(false);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const switchToParentMutation = useSwitchToParent({ silent_error: true, showErrMsg: true });
 
   const {
@@ -164,8 +167,19 @@ const ChildDashboard = () => {
               <p className="text-purple-100 font-bold text-lg">Read & Imagine!</p>
             </button>
           </div>
+          {/* Floating Chatbot Button (Left Bottom) */}
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="fixed bottom-6 left-6 z-40 bg-[#FFC82C] hover:bg-[#E5B427] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all flex items-center justify-center border-4 border-white animate-bounce group"
+            aria-label="Open Chat"
+          >
+            <Bot size={32} className="group-hover:animate-pulse" />
+          </button>
         </div>
       )}
+      {/* Chat Modal Component */}
+      {isChatOpen && <ChatModal onClose={() => setIsChatOpen(false)} profile={childProfile} />}
+
       {/* Parent Gate Modal */}
       {showExitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">

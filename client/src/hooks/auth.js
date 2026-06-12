@@ -108,7 +108,8 @@ const useSwitchToChild = (childProfile) => {
     onSuccess: ({ token }) => {
       queryClient.setQueryData(['currentChild'], childProfile);
 
-      queryClient.removeQueries([['children', 'currentUser']]);
+      // queryClient.removeQueries([['children', 'currentUser']]);
+      queryClient.removeQueries();
 
       updateToken(token);
     },
@@ -123,8 +124,9 @@ const useSwitchToParent = (axiosConfig) => {
   return useMutation({
     mutationFn: (data) => authService.switchToParent(data, axiosConfig),
     onSuccess: ({ token, parent }) => {
-      queryClient.removeQueries(['currentChild']);
-      queryClient.removeQueries(['assignedAssessment']);
+      // queryClient.removeQueries(['currentChild']);
+      // queryClient.removeQueries(['assignedAssessment']);
+      queryClient.removeQueries();
       queryClient.setQueryData(['currentUser'], parent);
 
       updateToken(token);

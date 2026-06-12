@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MessageSquare, Plus, Trash2, X, Loader2 } from 'lucide-react';
 import { formatDate } from '@/utils/date';
 import { useCreateSession, useDeleteChatSession, useGetChatSessions } from '@/hooks/chatSession';
+import { useJwt } from '@/context/JwtProvider';
 
 export const ChatSession = ({
   profile,
@@ -24,6 +25,8 @@ export const ChatSession = ({
   );
   const createSessionMutation = useCreateSession();
   const deleteSessionMutation = useDeleteChatSession();
+
+  const { decodedJwt } = useJwt();
 
   // 1. Reset states cleanly when modal opens for a new profile
   useEffect(() => {
@@ -107,7 +110,7 @@ export const ChatSession = ({
         <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center h-[72px]">
           <div className="flex flex-col">
             <h2 className="font-bold text-gray-800 text-lg leading-tight">Chat History</h2>
-            <p className="text-xs text-gray-500 font-medium">For {profile?.name}</p>
+            {decodedJwt.role === 'parent' && <p className="text-xs text-gray-500 font-medium">For {profile?.name}</p>}
           </div>
           <button
             onClick={() => setShowMobileSidebar(false)}

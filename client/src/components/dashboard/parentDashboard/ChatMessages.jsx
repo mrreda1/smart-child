@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useGetSessionMsgs, useChatWithStream } from '@/hooks/chatMsgs';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useJwt } from '@/context/JwtProvider';
 
 const limit = 6;
 
@@ -32,6 +33,8 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
   const chatWithStreamMutation = useChatWithStream();
 
   const queryClient = useQueryClient();
+
+  const { decodedJwt } = useJwt();
 
   useEffect(() => {
     if (isOptimisticSwapRef.current) {
@@ -145,7 +148,7 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
       {
         _id: tempUserMsgId,
         sessionId: activeSession,
-        sender: 'parent',
+        sender: decodedJwt.role,
         content: messageContent,
         createdAt: new Date().toISOString(),
         isOptimistic: true,
@@ -214,8 +217,6 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
     setPage((prev) => prev + 1);
   };
 
-  console.log(messages);
-
   return (
     <div className="flex-1 flex flex-col h-full bg-white relative z-10 w-full">
       {/* Chat Header */}
@@ -233,25 +234,27 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
           <div className="flex flex-col overflow-hidden justify-center">
             <div className="flex items-center gap-2 mb-0.5">
               <h3 className="font-bold text-md text-gray-900 leading-tight truncate">AI Assistant</h3>
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-full shrink-0"
-                title={`Messaging for ${profile?.name}`}
-              >
-                {profile?.photo ? (
-                  <img
-                    src={`${import.meta.env.VITE_IMG_BASE_URL}/${profile.photo}`}
-                    className="w-3.5 h-3.5 rounded-full object-cover"
-                    alt=""
-                  />
-                ) : (
-                  <div className="w-3.5 h-3.5 rounded-full bg-[#FFC107] text-black flex items-center justify-center text-[8px] font-black">
-                    {profile?.name?.charAt(0)}
-                  </div>
-                )}
-                <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[80px]">
-                  {profile?.name}
-                </span>
-              </div>
+              {decodedJwt.role === 'parent' && (
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-full shrink-0"
+                  title={`Messaging for ${profile?.name}`}
+                >
+                  {profile?.photo ? (
+                    <img
+                      src={`${import.meta.env.VITE_IMG_BASE_URL}/${profile.photo}`}
+                      className="w-3.5 h-3.5 rounded-full object-cover"
+                      alt=""
+                    />
+                  ) : (
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#FFC107] text-black flex items-center justify-center text-[8px] font-black">
+                      {profile?.name?.charAt(0)}
+                    </div>
+                  )}
+                  <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[80px]">
+                    {profile?.name}
+                  </span>
+                </div>
+              )}
             </div>
             <p className="text-xs text-gray-500 font-medium truncate max-w-[200px] sm:max-w-[300px]">
               {currentSession?.topic}
@@ -310,11 +313,11 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
             {messages.map((m) => (
               <div
                 key={m._id}
-                className={`flex flex-col max-w-[85%] md:max-w-[75%] ${m.sender === 'parent' ? 'self-end' : 'self-start'}`}
+                className={`flex flex-col max-w-[85%] md:max-w-[75%] ${m.sender === decodedJwt.role ? 'self-end' : 'self-start'}`}
               >
                 <div
                   className={`p-3.5 text-[15px] leading-relaxed shadow-sm ${
-                    m.sender === 'parent'
+                    m.sender === decodedJwt.role
                       ? 'bg-[#FFC107] text-black rounded-2xl rounded-br-sm'
                       : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
                   }`}
@@ -329,7 +332,7 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
                 </div>
 
                 <span
-                  className={`text-[11px] text-gray-400 mt-1 px-1 ${m.sender === 'parent' ? 'text-right' : 'text-left'}`}
+                  className={`text-[11px] text-gray-400 mt-1 px-1 ${m.sender === decodedJwt.role ? 'text-right' : 'text-left'}`}
                 >
                   {m.createdAt
                     ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -368,7 +371,9 @@ export const ChatMessages = ({ profile, activeSession, currentSession, onClose, 
                     ? 'Create a new chat to message...'
                     : isTyping
                       ? 'Waiting for response...'
-                      : `Ask something about ${profile?.name}...`
+                      : decodedJwt.role === 'parent'
+                        ? `Ask something about ${profile?.name}...`
+                        : "Let's talk together"
                 }
                 className="flex-1 bg-transparent text-[15px] px-4 py-3 outline-none resize-none max-h-32 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
                 rows={1}
