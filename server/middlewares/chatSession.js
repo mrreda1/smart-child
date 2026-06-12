@@ -25,4 +25,22 @@ const ensureChatSession = catchAsync(async (req, res, next) => {
   next();
 });
 
-module.exports = { ensureChatSession };
+const adjustReqPayload = (destination) =>
+  catchAsync(async (req, res, next) => {
+    switch (req.decodedJwt.role) {
+      case 'parent':
+        req[destination].parentId = req.decodedJwt.id;
+        break;
+      case 'child':
+        req[destination].parentId = null;
+
+        req[destination].childId = req.decodedJwt.childId;
+        break;
+      default:
+        throw new AppError('Invalid Role', StatusCodes.FORBIDDEN);
+    }
+
+    next();
+  });
+
+module.exports = { ensureChatSession, adjustReqPayload };

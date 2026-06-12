@@ -8,7 +8,7 @@ const chatSessionSchema = new mongoose.Schema(
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Parent',
-      required: true,
+      default: null,
     },
     childId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -5,9 +5,14 @@ const chatSessionMiddleware = require('../middlewares/chatSession');
 
 const chatMsgController = require('../controllers/chatMsg');
 
-router.use(authMiddleware.protect);
+router.use(authMiddleware.verifyToken);
 
-router.post('/', chatSessionMiddleware.ensureChatSession, chatMsgController.sendMsg);
+router.post(
+  '/',
+  chatSessionMiddleware.adjustReqPayload('body'),
+  chatSessionMiddleware.ensureChatSession,
+  chatMsgController.sendMsg,
+);
 
 router.get('/', chatMsgController.getMsgs);
 

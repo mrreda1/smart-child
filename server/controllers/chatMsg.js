@@ -11,47 +11,76 @@ const mongoose = require('mongoose');
 const getMsgs = handlerFactory.getMany(ChatMessageModel);
 
 const sendMsg = catchAsync(async (req, res, next) => {
-  const { message, sessionId } = req.body;
+  const { message, sessionId, childId } = req.body;
   let { stream: isStream = 'true' } = req.query;
 
   isStream = isStream === 'true';
 
+  const sender = req.decodedJwt.role;
+
+  if (!['parent', 'child'].includes(sender))
+    throw new AppError('Invalid sender type. Must be parent or child.', StatusCodes.BAD_REQUEST);
+
   const userMsgId = new mongoose.Types.ObjectId();
   const aiMsgId = new mongoose.Types.ObjectId();
 
-  const history = (await ChatMessageModel.find({ sessionId }).sort('-createdAt').limit(10)).reverse(); // Last 10 msgs
+  const history = (await ChatMessageModel.find({ sessionId }).sort('-createdAt').limit(10)).reverse();
 
-  // --- Use the propagated session object to update the topic ---
   if (history.length === 0) {
     req.chatSession.topic = message.substring(0, 30) + (message.length > 30 ? '...' : '');
-    await req.chatSession.save(); // Saves the modification directly
+    await req.chatSession.save();
   }
-  // ------------------------------------------------------------------------
 
   await ChatMessageModel.create({
     _id: userMsgId,
     sessionId,
-    sender: 'parent',
+    sender,
     content: message,
   });
 
   const formattedHistory = history.map((msg) => ({
-    role: msg.sender === 'parent' ? 'user' : 'assistant',
+    role: msg.sender === 'AI' ? 'assistant' : 'user',
     content: msg.content,
   }));
 
-  const overallReport = (await OverallReportModel.findOne({ child_id: req.child._id }))?.toObject();
-  const formattedReport = formatOverallReport(overallReport);
-
+  // Initialize base payload (shared by both child and parent)
   const aiPayload = {
     childName: req.child.name,
     age: req.child.age,
     message: message,
-    report: formattedReport,
     history: formattedHistory,
   };
 
-  const response = await chatbotService.chat(aiPayload, isStream);
+  if (sender === 'parent') {
+    const overallReport = (await OverallReportModel.findOne({ child_id: childId }))?.toObject();
+    aiPayload.report = formatOverallReport(overallReport);
+
+    const childSessions = await ChatSessionModel.find({ childId: childId, parentId: null }).select('_id');
+    const childSessionIds = childSessions.map((session) => session._id);
+
+    const lastChildMsg = await ChatMessageModel.findOne({
+      sessionId: { $in: childSessionIds },
+      sender: 'child',
+    }).sort('-createdAt');
+
+    let formattedChildHistory = [];
+    if (lastChildMsg) {
+      const rawChildHistory = await ChatMessageModel.find({
+        sessionId: lastChildMsg.sessionId,
+      })
+        .sort('-createdAt')
+        .limit(10);
+
+      formattedChildHistory = rawChildHistory.reverse().map((msg) => ({
+        role: msg.sender === 'AI' ? 'assistant' : 'user',
+        content: msg.content,
+      }));
+    }
+
+    aiPayload.child_history = formattedChildHistory;
+  }
+
+  const response = await chatbotService.chat(aiPayload, sender, isStream);
 
   if (isStream) {
     handleStreamResponse(res, response, sessionId, userMsgId, aiMsgId);

@@ -65,4 +65,25 @@ const protectChild = catchAsync(async (req, res, next) => {
   next();
 });
 
-module.exports = { protect, protectChild };
+const verifyToken = catchAsync(async (req, res, next) => {
+  if (!req.headers.authorization?.startsWith('Bearer')) {
+    throw new AppError("You're not logged in! Please log in to get access.", StatusCodes.UNAUTHORIZED);
+  }
+
+  const token = req.headers.authorization.split(' ')[1];
+
+  let decoded;
+
+  try {
+    decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  } catch (err) {
+    err.statusCode = StatusCodes.UNAUTHORIZED;
+    throw err;
+  }
+
+  req.decodedJwt = decoded;
+
+  next();
+});
+
+module.exports = { protect, protectChild, verifyToken };

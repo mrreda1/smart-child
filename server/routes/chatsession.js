@@ -3,29 +3,13 @@ const router = require('express').Router();
 const authMiddleware = require('../middlewares/auth');
 
 const chatSessionController = require('../controllers/chatSession');
+const chatSessionMiddleware = require('../middlewares/chatSession');
 
-router.use(authMiddleware.protect);
+router.use(authMiddleware.verifyToken);
 
-router.post(
-  '/',
-  (req, res, next) => {
-    req.body.parentId = req.user._id;
+router.post('/', chatSessionMiddleware.adjustReqPayload('body'), chatSessionController.createSession);
 
-    console.log(req.body);
-
-    next();
-  },
-  chatSessionController.createSession,
-);
-
-router.get(
-  '/',
-  (req, res, next) => {
-    req.query.parentId = req.user._id;
-    next();
-  },
-  chatSessionController.getSessions,
-);
+router.get('/', chatSessionMiddleware.adjustReqPayload('query'), chatSessionController.getSessions);
 
 router.delete('/:id', chatSessionController.deleteSession);
 

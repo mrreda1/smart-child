@@ -12,7 +12,7 @@ const chatMessageSchema = new mongoose.Schema(
     },
     sender: {
       type: String,
-      enum: ['parent', 'AI'],
+      enum: ['parent', 'child', 'AI'],
       required: true,
     },
     content: {
